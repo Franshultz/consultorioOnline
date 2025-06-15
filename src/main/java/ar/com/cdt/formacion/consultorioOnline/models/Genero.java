@@ -1,13 +1,12 @@
-package ar.com.cdt.formacion.consultorioOnline.domains;
-
-import jakarta.persistence.*;	
+package ar.com.cdt.formacion.consultorioOnline.models;
 
 public class Genero {
 
 	private int id;
     private String genero;
 
-    
+	public Genero() {}
+
 	public Genero(int id, String genero) {
 		this.id = id;
 		this.genero = genero;
@@ -15,10 +14,6 @@ public class Genero {
 	
 	public Genero(String genero) {
 		this.genero = genero;
-	}
-	
-	public Genero() {
-		
 	}
 
 	

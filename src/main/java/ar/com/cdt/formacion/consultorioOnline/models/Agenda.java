@@ -1,4 +1,4 @@
-package ar.com.cdt.formacion.consultorioOnline.domains;
+package ar.com.cdt.formacion.consultorioOnline.models;
 
 import java.util.List;
 
@@ -8,19 +8,18 @@ public class Agenda {
 	private int idAgenda;
 	private String tipoAgenda;
 	private List<Turno> listaTurnos;
-	
+
+	public Agenda() {}
+
+	public Agenda(int idAgenda, String tipoAgenda) {
+		this.idAgenda = idAgenda;
+		this.tipoAgenda = tipoAgenda;
+	}
+
 	public Agenda(int idAgenda, String tipoAgenda ,List<Turno> listaTurnos) {
 		this.idAgenda = idAgenda;
 		this.tipoAgenda = tipoAgenda;
 		this.listaTurnos = listaTurnos;
-	}
-	
-	public Agenda(List<Turno> listaTurnos) {
-		this.listaTurnos = listaTurnos;
-	}
-	
-	public Agenda() {
-		
 	}
 
 	public int getIdAgenda() {

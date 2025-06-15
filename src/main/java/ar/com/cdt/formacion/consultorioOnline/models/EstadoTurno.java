@@ -1,6 +1,4 @@
-package ar.com.cdt.formacion.consultorioOnline.domains;
-
-import jakarta.persistence.*;
+package ar.com.cdt.formacion.consultorioOnline.models;
 
 
 public class EstadoTurno {
@@ -8,8 +6,10 @@ public class EstadoTurno {
 	private int idEstadoTurno;
 
     private String estado;
-    
-	
+
+
+	public EstadoTurno() {}
+
 	public EstadoTurno(String estado) {
 		this.estado = estado;
 	}
@@ -18,11 +18,6 @@ public class EstadoTurno {
 		this.idEstadoTurno = idEstadoTurno;
 		this.estado = estado;
 	}
-	
-	public EstadoTurno() {
-		
-	}
-
 	
 	public int getIdEstado() {
 		return idEstadoTurno;

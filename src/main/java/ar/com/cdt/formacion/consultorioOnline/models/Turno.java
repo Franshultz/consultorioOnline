@@ -1,9 +1,7 @@
-package ar.com.cdt.formacion.consultorioOnline.domains;
+package ar.com.cdt.formacion.consultorioOnline.models;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-
-import jakarta.persistence.*;	
 
 public class Turno {
 

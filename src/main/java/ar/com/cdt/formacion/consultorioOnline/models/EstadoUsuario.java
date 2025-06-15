@@ -1,13 +1,13 @@
-package ar.com.cdt.formacion.consultorioOnline.domains;
-
-import jakarta.persistence.*;
+package ar.com.cdt.formacion.consultorioOnline.models;
 
 public class EstadoUsuario {
 
 	
 	private int idEstadoUsuario;	
     private String estado;
-    
+
+	public EstadoUsuario() {}
+
 	public EstadoUsuario(String estado) {
 		this.estado = estado;
 	}
@@ -16,11 +16,6 @@ public class EstadoUsuario {
 		this.idEstadoUsuario = idEstadoUsuario;
 		this.estado = estado;
 	}
-	
-	public EstadoUsuario() {
-		
-	}
-	
 
 	public int getIdEstadoUsuario() {
 		return idEstadoUsuario;

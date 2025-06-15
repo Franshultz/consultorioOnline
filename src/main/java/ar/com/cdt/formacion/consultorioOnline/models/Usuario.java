@@ -1,20 +1,50 @@
-package ar.com.cdt.formacion.consultorioOnline.domains;
+package ar.com.cdt.formacion.consultorioOnline.models;
 
 import java.time.LocalDate;
 
 
 public class Usuario {
 	
-	private int id;
-    private String nombre;
-    private String apellido;
-    private String email;
-    private String clave;
-    private int dni;
+	private int id, dni, fk_usuario;
+    private String nombre, apellido, email, clave;
     private LocalDate fechaNacimiento;
+
+	private int genero_fk;
     private Genero genero;
+
+	private int estadoUsuario_fk;
     private EstadoUsuario estadoUsuario;
-	
+
+	//Constructor Vacio por Default
+	public Usuario(){};
+
+	//Constructor para crear Medico o Paciente en BD
+	public Usuario(String nombre, String apellido, String email, String clave, int dni, LocalDate fechaNacimiento,
+				   int genero_fk, int estadoUsuario_fk) {
+		this.nombre = nombre;
+		this.apellido = apellido;
+		this.email = email;
+		this.clave = clave;
+		this.dni = dni;
+		this.fechaNacimiento = fechaNacimiento;
+		this.genero_fk = genero_fk;
+		this.estadoUsuario_fk = estadoUsuario_fk;
+	}
+
+	//Constructor para crear Medico o Paciente en BD con id
+	public Usuario(String nombre, String apellido, String email, String clave, int dni, LocalDate fechaNacimiento,
+				   int genero_fk, int estadoUsuario_fk, int fk_usuario) {
+		this.nombre = nombre;
+		this.apellido = apellido;
+		this.email = email;
+		this.clave = clave;
+		this.dni = dni;
+		this.fechaNacimiento = fechaNacimiento;
+		this.genero_fk = genero_fk;
+		this.estadoUsuario_fk = estadoUsuario_fk;
+		this.fk_usuario = fk_usuario;
+	}
+
 	public Usuario(String nombre, String apellido, String email, String clave, int dni, LocalDate fechaNacimiento,
 			Genero genero, EstadoUsuario estadoUsuario) {
 		this.nombre = nombre;
@@ -41,17 +71,20 @@ public class Usuario {
 		this.estadoUsuario = estadoUsuario;
 	}
 
-	public Usuario(){
-
-    }
-
-
 	public int getId() {
 		return id;
 	}
 
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	public int getDni() {
+		return dni;
+	}
+
+	public void setDni(int dni) {
+		this.dni = dni;
 	}
 
 	public String getNombre() {
@@ -86,20 +119,20 @@ public class Usuario {
 		this.clave = clave;
 	}
 
-	public int getDni() {
-		return dni;
-	}
-
-	public void setDni(int dni) {
-		this.dni = dni;
-	}
-
 	public LocalDate getFechaNacimiento() {
 		return fechaNacimiento;
 	}
 
 	public void setFechaNacimiento(LocalDate fechaNacimiento) {
 		this.fechaNacimiento = fechaNacimiento;
+	}
+
+	public int getGenero_fk() {
+		return genero_fk;
+	}
+
+	public void setGenero_fk(int genero_fk) {
+		this.genero_fk = genero_fk;
 	}
 
 	public Genero getGenero() {
@@ -110,12 +143,20 @@ public class Usuario {
 		this.genero = genero;
 	}
 
-	public EstadoUsuario getEstado() {
+	public int getEstadoUsuario_fk() {
+		return estadoUsuario_fk;
+	}
+
+	public void setEstadoUsuario_fk(int estadoUsuario_fk) {
+		this.estadoUsuario_fk = estadoUsuario_fk;
+	}
+
+	public EstadoUsuario getEstadoUsuario() {
 		return estadoUsuario;
 	}
 
-	public void setEstado(EstadoUsuario estado) {
-		this.estadoUsuario = estado;
+	public void setEstadoUsuario(EstadoUsuario estadoUsuario) {
+		this.estadoUsuario = estadoUsuario;
 	}
 
 	@Override

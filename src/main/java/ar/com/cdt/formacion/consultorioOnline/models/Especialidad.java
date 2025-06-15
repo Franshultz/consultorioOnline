@@ -1,4 +1,4 @@
-package ar.com.cdt.formacion.consultorioOnline.domains;
+package ar.com.cdt.formacion.consultorioOnline.models;
 
 
 public class Especialidad {
@@ -7,7 +7,9 @@ public class Especialidad {
     private int idEspecialidad;
     private String especialidad;
     private int duracionTurno;
-    
+
+	public Especialidad() {}
+
 	public Especialidad(String especialidad, int duracionTurno) {
 		this.especialidad = especialidad;
 		this.duracionTurno = duracionTurno;
@@ -18,10 +20,6 @@ public class Especialidad {
 		this.especialidad = especialidad;
 		this.duracionTurno = duracionTurno;
 	}
-	
-	public Especialidad() {
-    }
-
 	
 	public int getIdEspecialidad() {
 		return idEspecialidad;

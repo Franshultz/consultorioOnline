@@ -1,36 +1,31 @@
-package ar.com.cdt.formacion.consultorioOnline.DTO;
+package ar.com.cdt.formacion.consultorioOnline.dto;
+
+import ar.com.cdt.formacion.consultorioOnline.models.EstadoUsuario;
 import ar.com.cdt.formacion.consultorioOnline.models.Genero;
 
 import java.time.LocalDate;
 
-public class UsuarioAutocompletadoResponse {
+public class UsuarioResponse {
 
-    private int idUsuario, dni;
-    private String nombre, apellido, email, clave;
+    private int dni, fk_usuario;
+    private String nombre, apellido, email;
     private LocalDate fechaNacimiento;
     private Genero genero;
+    private EstadoUsuario estadoUsuario;
 
-    public UsuarioAutocompletadoResponse() {
+    public UsuarioResponse() {
 
     }
 
-    public UsuarioAutocompletadoResponse(int idUsuario, int dni, String nombre, String apellido, String email, String clave, LocalDate fechaNacimiento, Genero genero) {
-        this.idUsuario = idUsuario;
-        this.dni = dni;
+    public UsuarioResponse(String nombre, int fk_usuario, int dni, String apellido, String email, LocalDate fechaNacimiento, Genero genero, EstadoUsuario estadoUsuario) {
         this.nombre = nombre;
+        this.fk_usuario = fk_usuario;
+        this.dni = dni;
         this.apellido = apellido;
         this.email = email;
-        this.clave = clave;
         this.fechaNacimiento = fechaNacimiento;
         this.genero = genero;
-    }
-
-    public int getIdUsuario() {
-        return idUsuario;
-    }
-
-    public void setIdUsuario(int idUsuario) {
-        this.idUsuario = idUsuario;
+        this.estadoUsuario = estadoUsuario;
     }
 
     public int getDni() {
@@ -39,6 +34,14 @@ public class UsuarioAutocompletadoResponse {
 
     public void setDni(int dni) {
         this.dni = dni;
+    }
+
+    public int getFk_usuario() {
+        return fk_usuario;
+    }
+
+    public void setFk_usuario(int fk_usuario) {
+        this.fk_usuario = fk_usuario;
     }
 
     public String getNombre() {
@@ -65,14 +68,6 @@ public class UsuarioAutocompletadoResponse {
         this.email = email;
     }
 
-    public String getClave() {
-        return clave;
-    }
-
-    public void setClave(String clave) {
-        this.clave = clave;
-    }
-
     public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
@@ -87,5 +82,13 @@ public class UsuarioAutocompletadoResponse {
 
     public void setGenero(Genero genero) {
         this.genero = genero;
+    }
+
+    public EstadoUsuario getEstadoUsuario() {
+        return estadoUsuario;
+    }
+
+    public void setEstadoUsuario(EstadoUsuario estadoUsuario) {
+        this.estadoUsuario = estadoUsuario;
     }
 }

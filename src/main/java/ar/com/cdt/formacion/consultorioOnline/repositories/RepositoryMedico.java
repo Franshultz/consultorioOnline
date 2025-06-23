@@ -5,76 +5,101 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import ar.com.cdt.formacion.consultorioOnline.DTO.MedicoResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.MedicoResponse;
+import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
+import ar.com.cdt.formacion.consultorioOnline.exceptions.MedicoNoEncontradoException;
 import ar.com.cdt.formacion.consultorioOnline.models.*;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class RepositoryMedico {
 
-	public static boolean guardarConsultorio(Consultorio consultorio) {
+	public static boolean verificacionConsultorioDoble(int fk_medico, int fk_especialidad ){
+		String validarEspecialidadSql = "SELECT COUNT(*) FROM Consultorio WHERE fk_medico = ? AND fk_especialidad = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmtValidacion = con.prepareStatement(validarEspecialidadSql)){
+			stmtValidacion.setInt(1, fk_medico);
+			stmtValidacion.setInt(2, fk_especialidad);
+
+			ResultSet rsValidar = stmtValidacion.executeQuery();
+
+			if (rsValidar.next() && rsValidar.getInt(1) > 0) {
+				return true;
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+        return false;
+    }
+
+	public static Consultorio guardarConsultorio(Consultorio consultorio) {
+
 		String sqlAgenda = "INSERT INTO Agenda(tipo_agenda) VALUES (?)";
 		String sqlConsultorio = "INSERT INTO Consultorio(nombre_consultorio, horario_laboral_inicio, horario_laboral_fin, fk_medico, fk_especialidad, fk_agenda) VALUES (?, ?, ?, ?, ?, ?)";
 		String sqlConsultorio_Medico = "INSERT INTO Consultorio_Medico(fk_consultorio, fk_medico) VALUES (?, ?)";
 		String sqlConsultorio_Dias = "INSERT INTO Consultorio_Dias(fk_consultorio, fk_dias) VALUES (?, ?)";
 
-		try (Connection con = Conexion.getInstancia().getConexion();
-			 PreparedStatement stmtAgenda = con.prepareStatement(sqlAgenda, Statement.RETURN_GENERATED_KEYS)) {
 
-			stmtAgenda.setString(1, "medico");
 
-			int filasAgenda = stmtAgenda.executeUpdate();
-			if (filasAgenda > 0) {
-				try (ResultSet generatedKeys = stmtAgenda.getGeneratedKeys()) {
-					if (generatedKeys.next()) {
-						int fk_agenda = generatedKeys.getInt(1);
+			try (Connection con = Conexion.getInstancia().getConexion();
+				 PreparedStatement stmtAgenda = con.prepareStatement(sqlAgenda, Statement.RETURN_GENERATED_KEYS)) {
 
-						Time inicio = Time.valueOf(consultorio.getHorarioLaboralInicio() + ":00");  // convierte "08:00" en "08:00:00"
+				stmtAgenda.setString(1, "medico");
 
-						Time fin = Time.valueOf(consultorio.getHorarioLaboralFin() + ":00");
+				int filasAgenda = stmtAgenda.executeUpdate();
+				if (filasAgenda > 0) {
+					try (ResultSet generatedKeys = stmtAgenda.getGeneratedKeys()) {
+						if (generatedKeys.next()) {
+							int fk_agenda = generatedKeys.getInt(1);
 
-						try (PreparedStatement stmtConsultorio = con.prepareStatement(sqlConsultorio, Statement.RETURN_GENERATED_KEYS)) {
-							stmtConsultorio.setString(1, consultorio.getNombreConsultorio());
-							stmtConsultorio.setTime(2, inicio);
-							stmtConsultorio.setTime(3, fin);
-							stmtConsultorio.setInt(4, consultorio.getFk_medico());
-							stmtConsultorio.setInt(5, consultorio.getFk_especialidad());
-							stmtConsultorio.setInt(6, fk_agenda);
+							Time inicio = Time.valueOf(consultorio.getHorarioLaboralInicio() + ":00");  // convierte "08:00" en "08:00:00"
 
-							int filasConsultorio = stmtConsultorio.executeUpdate();
-							if (filasConsultorio > 0) {
-								System.out.println("Consultorio guardado correctamente");
-								ResultSet generatedKeys2 = stmtConsultorio.getGeneratedKeys();
-								if (generatedKeys2.next()) {
-									int fk_consultorio = generatedKeys2.getInt(1);
+							Time fin = Time.valueOf(consultorio.getHorarioLaboralFin() + ":00");
 
-									try (PreparedStatement stmtConsultorioMedico = con.prepareStatement(sqlConsultorio_Medico)) {
+							try (PreparedStatement stmtConsultorio = con.prepareStatement(sqlConsultorio, Statement.RETURN_GENERATED_KEYS)) {
+								stmtConsultorio.setString(1, consultorio.getNombreConsultorio());
+								stmtConsultorio.setTime(2, inicio);
+								stmtConsultorio.setTime(3, fin);
+								stmtConsultorio.setInt(4, consultorio.getFk_medico());
+								stmtConsultorio.setInt(5, consultorio.getFk_especialidad());
+								stmtConsultorio.setInt(6, fk_agenda);
+
+								int filasConsultorio = stmtConsultorio.executeUpdate();
+								if (filasConsultorio > 0) {
+									System.out.println("Consultorio guardado correctamente");
+									ResultSet generatedKeys2 = stmtConsultorio.getGeneratedKeys();
+									if (generatedKeys2.next()) {
+										int fk_consultorio = generatedKeys2.getInt(1);
+
+										try (PreparedStatement stmtConsultorioMedico = con.prepareStatement(sqlConsultorio_Medico)) {
 											stmtConsultorioMedico.setInt(1, fk_consultorio);
 											stmtConsultorioMedico.setInt(2, consultorio.getFk_medico());
 											stmtConsultorioMedico.executeUpdate();
-									}
-
-									try (PreparedStatement stmtConsultorioDias = con.prepareStatement(sqlConsultorio_Dias)) {
-										for (int dia : consultorio.getDias()) {
-											stmtConsultorioDias.setInt(1, fk_consultorio);
-											stmtConsultorioDias.setInt(2, dia);
-											stmtConsultorioDias.executeUpdate();
 										}
-									}
 
-									return true;
+										try (PreparedStatement stmtConsultorioDias = con.prepareStatement(sqlConsultorio_Dias)) {
+											for (int dia : consultorio.getDias()) {
+												stmtConsultorioDias.setInt(1, fk_consultorio);
+												stmtConsultorioDias.setInt(2, dia);
+												stmtConsultorioDias.executeUpdate();
+											}
+										}
+
+										consultorio.setIdConsultorio(fk_consultorio);
+										return consultorio;
+									}
 								}
 							}
 						}
 					}
 				}
+			} catch (SQLException e) {
+				System.out.println("Error al agregar: " + e.getMessage());
+				e.printStackTrace();
+				throw new RuntimeException("Error al guardar consultorio: " + e.getMessage(), e);
 			}
-		} catch (SQLException e) {
-			System.out.println("Error al agregar: " + e.getMessage());
-			e.printStackTrace();
-			throw new RuntimeException("Error al guardar consultorio: " + e.getMessage(), e);
-		}
-		return false;
+			return null;
 	}
 
 
@@ -150,8 +175,8 @@ public class RepositoryMedico {
 			if (rsMedico.next()) {
 				return true;
 			}
-		} catch(SQLException e){
-			e.printStackTrace();
+		} catch (SQLException e) {
+			throw new DatabaseException("Error al acceder a la base de datos", e);
 		}
 		return false;
 	}
@@ -345,15 +370,65 @@ public class RepositoryMedico {
 						medico.setListaConsultorio(ObtenerListaConsultoriosXid(resultSet2.getInt("id_medico")));
 
 						return medico;
+					} else {
+						throw new MedicoNoEncontradoException("Medico no encontrado para el usuario ID " + fk_usuario);
 					}
 				}
 			}
 
 		} catch (SQLException e) {
+			throw new DatabaseException("Error al acceder a la base de datos", e);
+		}
+		throw new IllegalStateException("Flujo no alcanzable en iniciarSesion");
+    }
+
+	public static List<Especialidad> obtenerEspecialidadesPorMedico(int idMedico) {
+		List<Especialidad> especialidades = new ArrayList<>();
+		String sql = "SELECT e.id_especialidad, e.especialidad, e.duracion_turno " +
+				"FROM Consultorio c " +
+				"JOIN Especialidad e ON c.fk_especialidad = e.id_especialidad " +
+				"WHERE c.fk_medico = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sql)) {
+			stmt.setInt(1, idMedico);
+
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				Especialidad esp = new Especialidad();
+				esp.setIdEspecialidad(rs.getInt("id_especialidad"));
+				esp.setEspecialidad(rs.getString("especialidad"));
+				esp.setDuracionTurno(rs.getInt("duracion_turno"));
+				especialidades.add(esp);
+			}
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return medico;
+		return especialidades;
 	}
+
+
+	public static String obtenerMatriculaXid(int idUsuario) {
+		String sqlMatricula = "SELECT matricula FROM Medico WHERE fk_usuario=?";
+		String matricula= "";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sqlMatricula)) {
+			stmt.setInt(1, idUsuario);
+
+			ResultSet rs = stmt.executeQuery();
+
+			if (rs.next()) {
+				return matricula = rs.getString("matricula");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+        return matricula;
+    }
 
 }

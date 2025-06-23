@@ -1,6 +1,6 @@
-package ar.com.cdt.formacion.consultorioOnline.DTO;
+package ar.com.cdt.formacion.consultorioOnline.dto;
 
-public class UsuarioMultipleResponse implements UsuarioResponse{
+public class UsuarioMultipleResponse extends UsuarioResponse{
 
     private MedicoResponse medico;
     private PacienteResponse paciente;

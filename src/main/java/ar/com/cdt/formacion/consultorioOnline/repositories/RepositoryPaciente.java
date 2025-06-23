@@ -1,12 +1,11 @@
 package ar.com.cdt.formacion.consultorioOnline.repositories;
 
-import ar.com.cdt.formacion.consultorioOnline.DTO.MedicoResponse;
-import ar.com.cdt.formacion.consultorioOnline.DTO.PacienteResponse;
-import ar.com.cdt.formacion.consultorioOnline.models.Medico;
+import ar.com.cdt.formacion.consultorioOnline.dto.PacienteResponse;
+import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
+import ar.com.cdt.formacion.consultorioOnline.exceptions.PacienteNoEncontradoException;
 import ar.com.cdt.formacion.consultorioOnline.models.Paciente;
 import org.springframework.stereotype.Repository;
 
-import javax.swing.*;
 import java.sql.*;
 
 @Repository
@@ -84,38 +83,36 @@ public class RepositoryPaciente {
             if (rsPaciente.next()) {
                 return true;
             }
-        } catch(SQLException e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new DatabaseException("Error al acceder a la base de datos", e);
         }
         return false;
     }
 
 
     public static PacienteResponse ObtenerPacienteCompleto(int fk_usuario) {
-        PacienteResponse paciente = new PacienteResponse();
         String sqlUsuario = "SELECT * FROM Usuario WHERE id_usuario = ?";
         String sqlPaciente = "SELECT * FROM Paciente WHERE fk_usuario = ?";
+
         try (Connection con = Conexion.getInstancia().getConexion();
              PreparedStatement stmt = con.prepareStatement(sqlUsuario)) {
 
             stmt.setInt(1, fk_usuario);
-
             ResultSet resultSet = stmt.executeQuery();
 
             if (resultSet.next()) {
+                PacienteResponse paciente = new PacienteResponse();
                 paciente.setFk_usuario(fk_usuario);
                 paciente.setNombre(resultSet.getString("nombre"));
                 paciente.setApellido(resultSet.getString("apellido"));
                 paciente.setEmail(resultSet.getString("email"));
                 paciente.setDni(resultSet.getInt("dni"));
                 paciente.setFechaNacimiento(resultSet.getDate("fecha_nacimiento").toLocalDate());
-
                 paciente.setGenero(RepositoryUsuario.obtenerGeneroXid(resultSet.getInt("fk_genero")));
                 paciente.setEstadoUsuario(RepositoryUsuario.obtenerEstadoUsuarioXid(resultSet.getInt("fk_estado_usuario")));
 
-                try (PreparedStatement stmtPaciente = con.prepareStatement(sqlPaciente)){
+                try (PreparedStatement stmtPaciente = con.prepareStatement(sqlPaciente)) {
                     stmtPaciente.setInt(1, fk_usuario);
-
                     ResultSet resultSet2 = stmtPaciente.executeQuery();
 
                     if (resultSet2.next()) {
@@ -123,14 +120,37 @@ public class RepositoryPaciente {
                         paciente.setCobertura(resultSet2.getString("cobertura"));
 
                         return paciente;
+                    } else {
+                        throw new PacienteNoEncontradoException("Paciente no encontrado para el usuario ID " + fk_usuario);
                     }
                 }
+
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Error al acceder a la base de datos al obtener paciente completo", e);
+        }
+        throw new IllegalStateException("Flujo no alcanzable en iniciarSesion");
+    }
+
+
+
+    public static String obtenerCoberturaXid(int idUsuario) {
+        String sqlCobertura = "SELECT cobertura FROM Paciente WHERE fk_usuario=?";
+        String cobertura= "";
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sqlCobertura)) {
+            stmt.setInt(1, idUsuario);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return cobertura = rs.getString("cobertura");
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return paciente;
+        return cobertura;
     }
 }

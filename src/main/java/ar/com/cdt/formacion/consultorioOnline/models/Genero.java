@@ -16,7 +16,6 @@ public class Genero {
 		this.genero = genero;
 	}
 
-	
 	public int getId() {
 		return id;
 	}

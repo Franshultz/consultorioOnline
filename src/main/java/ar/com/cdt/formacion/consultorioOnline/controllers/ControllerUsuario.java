@@ -1,7 +1,12 @@
 package ar.com.cdt.formacion.consultorioOnline.controllers;
 
-import ar.com.cdt.formacion.consultorioOnline.DTO.LoginRequest;
-import ar.com.cdt.formacion.consultorioOnline.DTO.UsuarioResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.LoginRequest;
+import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioAutocompletadoResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioResponse;
+import ar.com.cdt.formacion.consultorioOnline.exceptions.CredencialesInvalidasException;
+import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
+import ar.com.cdt.formacion.consultorioOnline.exceptions.MedicoNoEncontradoException;
+import ar.com.cdt.formacion.consultorioOnline.exceptions.PacienteNoEncontradoException;
 import ar.com.cdt.formacion.consultorioOnline.models.*;
 import ar.com.cdt.formacion.consultorioOnline.service.ServiceUsuario;
 import org.springframework.http.HttpStatus;
@@ -15,26 +20,44 @@ import java.util.Map;
 @RequestMapping("/api/usuarios")
 public class ControllerUsuario {
 
-    private final ServiceUsuario serviceUsuario;
 
-    public ControllerUsuario(ServiceUsuario serviceUsuario) {
-        this.serviceUsuario = serviceUsuario;
-    }
 
     @PostMapping("/sesion")
-    public UsuarioResponse iniciarSesion(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<?> iniciarSesion(@RequestBody LoginRequest loginRequest) {
         try {
-            return serviceUsuario.iniciarSesion(loginRequest);
+            UsuarioResponse user = ServiceUsuario.iniciarSesion(loginRequest);
+            System.out.println(user.getDni());
+            return ResponseEntity
+                    .status(HttpStatus.OK) // 200 OK
+                    .body(Map.of(
+                            "message", "Inicio de sesión exitoso",
+                            "usuario", user
+                    ));
+        } catch (CredencialesInvalidasException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED) // 401 Unauthorized
+                    .body(Map.of("error", e.getMessage()));
+        } catch (MedicoNoEncontradoException | PacienteNoEncontradoException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND) // 404 Not Found
+                    .body(Map.of("error", e.getMessage()));
+        } catch (DatabaseException e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR) // 500 Internal Server Error
+                    .body(Map.of("error", "Error de base de datos: " + e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error inesperado al iniciar sesión"));
         }
     }
+
 
     @PostMapping("/medico")
     public ResponseEntity<?> crearMedico(@RequestBody Medico medico) {
         try {
-            int idMedico = serviceUsuario.registrarUsuarioMedico(medico);
+            int idMedico = ServiceUsuario.registrarUsuarioMedico(medico);
             return ResponseEntity
                     .status(HttpStatus.CREATED) // 201
                     .body(Map.of(
@@ -56,7 +79,7 @@ public class ControllerUsuario {
     @PostMapping("/paciente")
     public ResponseEntity<?> crearPaciente(@RequestBody Paciente paciente) {
         try {
-            int idPaciente = serviceUsuario.registrarUsuarioPaciente(paciente);
+            int idPaciente = ServiceUsuario.registrarUsuarioPaciente(paciente);
             return ResponseEntity
                     .status(HttpStatus.CREATED) // 201
                     .body(Map.of(
@@ -76,10 +99,22 @@ public class ControllerUsuario {
         }
     }
 
+    @GetMapping("/existe-email")
+        public ResponseEntity<?> existeEmail(@RequestParam String email) {
+        System.out.println("ppppppppppPPPPPPPPPPPPPPPPPPPPPPPPPP" + email);
+        boolean flag = ServiceUsuario.existeUsuarioXemail(email);
+        return ResponseEntity
+                .status(HttpStatus.CREATED) // 201
+                .body(Map.of(
+                        "message", "Consulta creada correctamente",
+                        "existeXmail", flag
+                ));
+    }
+
     @GetMapping("/sexos")
     public ResponseEntity<?> obtenerSexos() {
         try {
-            return ResponseEntity.ok(serviceUsuario.capturarListGeneros());
+            return ResponseEntity.ok(ServiceUsuario.capturarListGeneros());
         } catch (Exception e){
             e.printStackTrace();
             return null;
@@ -89,20 +124,28 @@ public class ControllerUsuario {
     @GetMapping("/dias")
     public ResponseEntity<?> obtenerDias() {
         try {
-            return ResponseEntity.ok(serviceUsuario.capturarListDias());
+            return ResponseEntity.ok(ServiceUsuario.capturarListDias());
         } catch (Exception e){
             e.printStackTrace();
             return null;
         }
     }
 
-    @GetMapping("/datos-autocompletado")
-    public ResponseEntity<?> obtenerUsuarioAutocompletado(@RequestParam int dni) {
+    @GetMapping("/buscarPorDni")
+    public ResponseEntity<?> buscarPorDni(@RequestParam int dni) {
         try {
-            return ResponseEntity.ok(serviceUsuario.capturarAutocompletado(dni));
-        } catch (Exception e){
+        UsuarioAutocompletadoResponse datos = ServiceUsuario.capturarAutocompletado(dni);
+        return ResponseEntity
+                .status(HttpStatus.CREATED) // 201
+                .body(Map.of(
+                        "message", "Paciente creado correctamente",
+                        "datos_autocompletado", datos
+                ));
+        } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
+                    .body("Error inesperado en el autocmpletado");
         }
     }
 

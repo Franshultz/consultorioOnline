@@ -1,4 +1,4 @@
-package ar.com.cdt.formacion.consultorioOnline.DTO;
+package ar.com.cdt.formacion.consultorioOnline.dto;
 
 public class LoginRequest {
 

@@ -1,5 +1,6 @@
 package ar.com.cdt.formacion.consultorioOnline.controllers;
 
+import ar.com.cdt.formacion.consultorioOnline.dto.MedicoConsultorioResponse;
 import ar.com.cdt.formacion.consultorioOnline.models.Consultorio;
 import ar.com.cdt.formacion.consultorioOnline.models.Especialidad;
 import ar.com.cdt.formacion.consultorioOnline.service.ServiceMedico;
@@ -45,6 +46,17 @@ public class ControllerMedico {
                     .status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
                     .body("Error inesperado al registrar el consultorio");
         }
+    }
+
+    @GetMapping("/consultorios-especialidad/{idEspecialidad}")
+    public ResponseEntity<List<MedicoConsultorioResponse>> obtenerConsultoriosPorEspecialidad(@PathVariable int idEspecialidad) {
+        List<MedicoConsultorioResponse> consultorios = ServiceMedico.obtenerConsultoriosPorEspecialidad(idEspecialidad);
+
+        if (consultorios.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(consultorios);
     }
 
 

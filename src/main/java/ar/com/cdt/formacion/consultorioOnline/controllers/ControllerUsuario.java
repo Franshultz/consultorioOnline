@@ -21,7 +21,6 @@ import java.util.Map;
 public class ControllerUsuario {
 
 
-
     @PostMapping("/sesion")
     public ResponseEntity<?> iniciarSesion(@RequestBody LoginRequest loginRequest) {
         try {

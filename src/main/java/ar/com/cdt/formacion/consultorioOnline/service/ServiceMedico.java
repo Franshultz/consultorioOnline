@@ -1,14 +1,12 @@
 package ar.com.cdt.formacion.consultorioOnline.service;
 
 
+import ar.com.cdt.formacion.consultorioOnline.dto.MedicoConsultorioResponse;
 import ar.com.cdt.formacion.consultorioOnline.models.Consultorio;
 import ar.com.cdt.formacion.consultorioOnline.models.Especialidad;
-import ar.com.cdt.formacion.consultorioOnline.models.Genero;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryMedico;
-import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryUsuario;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,5 +26,9 @@ public class ServiceMedico {
 
     public static List<Especialidad> obtenerEspecialidadesPorMedico (int idMedico) {
         return RepositoryMedico.obtenerEspecialidadesPorMedico(idMedico);
+    }
+
+    public static List<MedicoConsultorioResponse> obtenerConsultoriosPorEspecialidad(int idEspecialidad) {
+        return RepositoryMedico.obtenerConsultoriosPorEspecialidad(idEspecialidad);
     }
 }

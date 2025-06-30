@@ -17,33 +17,19 @@ public class Consultorio {
 	private String horarioLaboralInicio;
 	private String horarioLaboralFin;
 
-	private int fk_agenda;
-	private Agenda agendaMedico;
-
 	private List<Integer> dias;
 	private List<DiaSemana> diasSemana;
 
 
 	public Consultorio() {}
 
-	public Consultorio(String nombreConsultorio, int fk_especialidad, String horarioLaboralInicio, String horarioLaboralFin, int fk_medico , int fk_agenda, List<Integer> dias) {
-		this.nombreConsultorio = nombreConsultorio;
-		this.fk_especialidad = fk_especialidad;
-		this.horarioLaboralInicio = horarioLaboralInicio;
-		this.horarioLaboralFin = horarioLaboralFin;
-		this.fk_medico = fk_medico;
-		this.fk_agenda = fk_agenda;
-		this.dias = dias;
-	}
-
-	public Consultorio(int idConsultorio, String nombreConsultorio, String horarioLaboralInicio, String horarioLaboralFin, int fk_medico, Especialidad especialidad , Agenda agendaMedico, List<DiaSemana> diasSemana) {
+	public Consultorio(int idConsultorio, String nombreConsultorio, String horarioLaboralInicio, String horarioLaboralFin, int fk_medico, Especialidad especialidad , List<DiaSemana> diasSemana) {
 		this.idConsultorio = idConsultorio;
 		this.nombreConsultorio = nombreConsultorio;
 		this.horarioLaboralInicio = horarioLaboralInicio;
 		this.horarioLaboralFin = horarioLaboralFin;
 		this.fk_medico = fk_medico;
 		this.especialidad = especialidad;
-		this.agendaMedico = agendaMedico;
 		this.diasSemana = diasSemana;
 	}
 
@@ -53,22 +39,6 @@ public class Consultorio {
 
 	public void setIdConsultorio(int idConsultorio) {
 		this.idConsultorio = idConsultorio;
-	}
-
-	public Agenda getAgendaMedico() {
-		return agendaMedico;
-	}
-
-	public void setAgendaMedico(Agenda agendaMedico) {
-		this.agendaMedico = agendaMedico;
-	}
-
-	public int getFk_agenda() {
-		return fk_agenda;
-	}
-
-	public void setFk_agenda(int fk_agenda) {
-		this.fk_agenda = fk_agenda;
 	}
 
 	public String getHorarioLaboralFin() {
@@ -147,7 +117,7 @@ public class Consultorio {
 	public String toString() {
 		return "Consultorio [idConsultorio=" + idConsultorio + ", nombreConsultorio=" + nombreConsultorio + ", medico="
 				+ medico + ", especialidad=" + especialidad + ", horarioLaboralInicio=" + horarioLaboralInicio
-				+ ", horarioLaboralFin=" + horarioLaboralFin + ", agendaMedico=" + agendaMedico + "]";
+				+ ", horarioLaboralFin=" + horarioLaboralFin + "]";
 	}
 	
 }

@@ -105,5 +105,11 @@ public class ServiceUsuario {
     public static boolean existeUsuarioXemail(String email) {
         return RepositoryUsuario.existeUsuarioXemail(email);
     }
+
+    public static List<MedicoConsultorioResponse>obtenerConsultorioEspecialidad(int fk_especialidad) {
+        System.out.println("PIPARDO GOROSITOVICH " + fk_especialidad);
+        List<MedicoConsultorioResponse> listaConsultorio = RepositoryMedico.obtenerConsultoriosPorEspecialidad(fk_especialidad);
+        return listaConsultorio;
+    }
 }
 

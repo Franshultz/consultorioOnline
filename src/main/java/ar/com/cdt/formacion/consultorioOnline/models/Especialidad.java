@@ -9,11 +9,6 @@ public class Especialidad {
     private int duracionTurno;
 
 	public Especialidad() {}
-
-	public Especialidad(String especialidad, int duracionTurno) {
-		this.especialidad = especialidad;
-		this.duracionTurno = duracionTurno;
-	}
 	
 	public Especialidad(int idEspecialidad, String especialidad, int duracionTurno) {
 		this.idEspecialidad = idEspecialidad;

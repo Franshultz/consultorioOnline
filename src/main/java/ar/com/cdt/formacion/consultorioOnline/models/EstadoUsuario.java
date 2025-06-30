@@ -7,10 +7,6 @@ public class EstadoUsuario {
     private String estado;
 
 	public EstadoUsuario() {}
-
-	public EstadoUsuario(String estado) {
-		this.estado = estado;
-	}
 	
 	public EstadoUsuario(int idEstadoUsuario, String estado) {
 		this.idEstadoUsuario = idEstadoUsuario;

@@ -11,10 +11,6 @@ public class Genero {
 		this.id = id;
 		this.genero = genero;
 	}
-	
-	public Genero(String genero) {
-		this.genero = genero;
-	}
 
 	public int getId() {
 		return id;

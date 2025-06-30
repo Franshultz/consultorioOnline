@@ -12,16 +12,14 @@ import java.sql.*;
 public class RepositoryPaciente {
 
     public static int guardarPaciente(Paciente paciente) {
-        String sql = "INSERT INTO Paciente(cobertura, fk_usuario, fk_agenda) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO Paciente(cobertura, fk_usuario) VALUES (?, ?)";
 
         try (Connection con = Conexion.getInstancia().getConexion();
              PreparedStatement statement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             statement.setString(1, paciente.getCobertura());
             statement.setInt(2, paciente.getFk_usuario());
-            int fk_agenda = guardarAgendaPaciente();
 
-            statement.setInt(3, fk_agenda);
             int filasInsertadas = statement.executeUpdate();
 
             if (filasInsertadas > 0) {
@@ -40,37 +38,6 @@ public class RepositoryPaciente {
         }
         return 0;
     }
-
-    public static int guardarAgendaPaciente(){
-        String sql = "INSERT INTO Agenda(tipo_agenda) VALUES (?)";
-
-        try (Connection con = Conexion.getInstancia().getConexion();
-             PreparedStatement stmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            stmt.setString(1, "paciente");
-
-            int comprobacion = stmt.executeUpdate();
-
-            if (comprobacion > 0) {
-                System.out.println("Se agregó exitosamente un agenda");
-
-                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        System.out.println("Se pudo obtener la clave generada para la agenda");
-                        int fk_agenda = generatedKeys.getInt(1);
-                        return fk_agenda;
-                    } else {
-                        System.out.println("No se pudo obtener la clave generada para la agenda");
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("Error al agregar agenda: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
 
     public static boolean existePaciente(int fk_usuario) {
         String sqlPaciente = "SELECT * FROM Paciente WHERE fk_usuario = ?";

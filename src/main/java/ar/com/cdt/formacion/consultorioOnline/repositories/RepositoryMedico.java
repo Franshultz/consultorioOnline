@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+import ar.com.cdt.formacion.consultorioOnline.dto.MedicoConsultorioResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.MedicoResponse;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.MedicoNoEncontradoException;
@@ -35,73 +36,53 @@ public class RepositoryMedico {
 
 	public static Consultorio guardarConsultorio(Consultorio consultorio) {
 
-		String sqlAgenda = "INSERT INTO Agenda(tipo_agenda) VALUES (?)";
-		String sqlConsultorio = "INSERT INTO Consultorio(nombre_consultorio, horario_laboral_inicio, horario_laboral_fin, fk_medico, fk_especialidad, fk_agenda) VALUES (?, ?, ?, ?, ?, ?)";
+		String sqlConsultorio = "INSERT INTO Consultorio(nombre_consultorio, horario_laboral_inicio, horario_laboral_fin, fk_medico, fk_especialidad) VALUES (?, ?, ?, ?, ?)";
 		String sqlConsultorio_Medico = "INSERT INTO Consultorio_Medico(fk_consultorio, fk_medico) VALUES (?, ?)";
 		String sqlConsultorio_Dias = "INSERT INTO Consultorio_Dias(fk_consultorio, fk_dias) VALUES (?, ?)";
 
 
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmtConsultorio = con.prepareStatement(sqlConsultorio, Statement.RETURN_GENERATED_KEYS)) {
 
-			try (Connection con = Conexion.getInstancia().getConexion();
-				 PreparedStatement stmtAgenda = con.prepareStatement(sqlAgenda, Statement.RETURN_GENERATED_KEYS)) {
+			Time inicio = Time.valueOf(consultorio.getHorarioLaboralInicio() + ":00");  // convierte "08:00" en "08:00:00"
+			Time fin = Time.valueOf(consultorio.getHorarioLaboralFin() + ":00");
 
-				stmtAgenda.setString(1, "medico");
+			stmtConsultorio.setString(1, consultorio.getNombreConsultorio());
+			stmtConsultorio.setTime(2, inicio);
+			stmtConsultorio.setTime(3, fin);
+			stmtConsultorio.setInt(4, consultorio.getFk_medico());
+			stmtConsultorio.setInt(5, consultorio.getFk_especialidad());
 
-				int filasAgenda = stmtAgenda.executeUpdate();
-				if (filasAgenda > 0) {
-					try (ResultSet generatedKeys = stmtAgenda.getGeneratedKeys()) {
-						if (generatedKeys.next()) {
-							int fk_agenda = generatedKeys.getInt(1);
+			int filasConsultorio = stmtConsultorio.executeUpdate();
+			if (filasConsultorio > 0) {
+				System.out.println("Consultorio guardado correctamente");
+				ResultSet generatedKeys2 = stmtConsultorio.getGeneratedKeys();
+				if (generatedKeys2.next()) {
+					int fk_consultorio = generatedKeys2.getInt(1);
 
-							Time inicio = Time.valueOf(consultorio.getHorarioLaboralInicio() + ":00");  // convierte "08:00" en "08:00:00"
+					try (PreparedStatement stmtConsultorioMedico = con.prepareStatement(sqlConsultorio_Medico)) {
+						stmtConsultorioMedico.setInt(1, fk_consultorio);
+						stmtConsultorioMedico.setInt(2, consultorio.getFk_medico());
+						stmtConsultorioMedico.executeUpdate();
+					}
 
-							Time fin = Time.valueOf(consultorio.getHorarioLaboralFin() + ":00");
-
-							try (PreparedStatement stmtConsultorio = con.prepareStatement(sqlConsultorio, Statement.RETURN_GENERATED_KEYS)) {
-								stmtConsultorio.setString(1, consultorio.getNombreConsultorio());
-								stmtConsultorio.setTime(2, inicio);
-								stmtConsultorio.setTime(3, fin);
-								stmtConsultorio.setInt(4, consultorio.getFk_medico());
-								stmtConsultorio.setInt(5, consultorio.getFk_especialidad());
-								stmtConsultorio.setInt(6, fk_agenda);
-
-								int filasConsultorio = stmtConsultorio.executeUpdate();
-								if (filasConsultorio > 0) {
-									System.out.println("Consultorio guardado correctamente");
-									ResultSet generatedKeys2 = stmtConsultorio.getGeneratedKeys();
-									if (generatedKeys2.next()) {
-										int fk_consultorio = generatedKeys2.getInt(1);
-
-										try (PreparedStatement stmtConsultorioMedico = con.prepareStatement(sqlConsultorio_Medico)) {
-											stmtConsultorioMedico.setInt(1, fk_consultorio);
-											stmtConsultorioMedico.setInt(2, consultorio.getFk_medico());
-											stmtConsultorioMedico.executeUpdate();
-										}
-
-										try (PreparedStatement stmtConsultorioDias = con.prepareStatement(sqlConsultorio_Dias)) {
-											for (int dia : consultorio.getDias()) {
-												stmtConsultorioDias.setInt(1, fk_consultorio);
-												stmtConsultorioDias.setInt(2, dia);
-												stmtConsultorioDias.executeUpdate();
-											}
-										}
-
-										consultorio.setIdConsultorio(fk_consultorio);
-										return consultorio;
-									}
-								}
-							}
+					try (PreparedStatement stmtConsultorioDias = con.prepareStatement(sqlConsultorio_Dias)) {
+						for (int dia : consultorio.getDias()) {
+							stmtConsultorioDias.setInt(1, fk_consultorio);
+							stmtConsultorioDias.setInt(2, dia);
+							stmtConsultorioDias.executeUpdate();
 						}
 					}
-				}
-			} catch (SQLException e) {
-				System.out.println("Error al agregar: " + e.getMessage());
-				e.printStackTrace();
-				throw new RuntimeException("Error al guardar consultorio: " + e.getMessage(), e);
-			}
-			return null;
-	}
 
+					consultorio.setIdConsultorio(fk_consultorio);
+					return consultorio;
+				}
+			}
+		} catch (SQLException ex) {
+			throw new RuntimeException(ex);
+		}
+        return consultorio;
+    }
 
 
 	public static int guardarMedico(Medico medico) {
@@ -320,7 +301,6 @@ public class RepositoryMedico {
 						resultSet.getString("horario_laboral_fin").toString(),
 						fk_medico,
 						ObtenerEspecialidadXid(resultSet.getInt("fk_especialidad")),
-						ObtenerAgendaXid(resultSet.getInt("fk_agenda")),
 						ObtenerDiasSemanaXconsultorio(resultSet.getInt("id_consultorio")))
 				);
 			}
@@ -328,7 +308,7 @@ public class RepositoryMedico {
 			System.out.println("Error al agregar: " + e.getMessage());
 			e.printStackTrace();
 		}
-
+		System.out.println(listaConsultorios);
 		return listaConsultorios;
 	}
 
@@ -369,6 +349,7 @@ public class RepositoryMedico {
 						medico.setMatricula(resultSet2.getString("matricula"));
 						medico.setListaConsultorio(ObtenerListaConsultoriosXid(resultSet2.getInt("id_medico")));
 
+						System.out.print(medico.getNombre());
 						return medico;
 					} else {
 						throw new MedicoNoEncontradoException("Medico no encontrado para el usuario ID " + fk_usuario);
@@ -429,6 +410,40 @@ public class RepositoryMedico {
 			e.printStackTrace();
 		}
         return matricula;
+    }
+
+	public static List<MedicoConsultorioResponse> obtenerConsultoriosPorEspecialidad(int idEspecialidad){
+		System.out.println("PEPE ARGENTO   " + idEspecialidad);
+		String sqlConsultorio = "SELECT Consultorio.id_consultorio, Consultorio.nombre_consultorio, Consultorio.horario_laboral_inicio, Consultorio.horario_laboral_fin, Especialidad.especialidad, Especialidad.duracion_turno, Consultorio.fk_medico, Consultorio.fk_especialidad, Usuario.nombre, Usuario.apellido, Usuario.email, GROUP_CONCAT(Dias.dia ORDER BY Dias.dia ASC SEPARATOR ' - ') AS lista_dias FROM Consultorio JOIN Medico ON Consultorio.fk_medico = Medico.id_medico JOIN Usuario ON Medico.fk_usuario = Usuario.id_usuario JOIN Especialidad ON Consultorio.fk_especialidad = Especialidad.id_especialidad LEFT JOIN Consultorio_Dias ON Consultorio.id_consultorio = Consultorio_Dias.fk_consultorio LEFT JOIN Dias ON Consultorio_Dias.fk_dias = Dias.id WHERE Especialidad.id_especialidad = ? GROUP BY Consultorio.id_consultorio";
+		List<MedicoConsultorioResponse> listaConsultorios = new ArrayList<MedicoConsultorioResponse>();
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sqlConsultorio)){
+
+			stmt.setInt(1, idEspecialidad);
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				listaConsultorios.add(new MedicoConsultorioResponse(
+						rs.getInt("id_consultorio"),
+						rs.getString("nombre_consultorio"),
+						rs.getString("horario_laboral_inicio"),
+						rs.getString("horario_laboral_fin"),
+						rs.getInt("fk_especialidad"),
+						rs.getInt("fk_medico"),
+						rs.getString("especialidad"),
+						rs.getInt("duracion_turno"),
+						rs.getString("nombre"),
+						rs.getString("apellido"),
+						rs.getString("email"),
+						rs.getString("lista_dias")
+				));
+			}
+			System.out.print("JJASJKASJKAJSKAJSAJJAJJSJJAJAJA" + listaConsultorios);
+			return listaConsultorios;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
     }
 
 }

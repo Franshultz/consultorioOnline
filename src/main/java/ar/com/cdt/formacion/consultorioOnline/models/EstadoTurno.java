@@ -9,10 +9,6 @@ public class EstadoTurno {
 
 
 	public EstadoTurno() {}
-
-	public EstadoTurno(String estado) {
-		this.estado = estado;
-	}
 	
 	public EstadoTurno(int idEstadoTurno, String estado) {
 		this.idEstadoTurno = idEstadoTurno;

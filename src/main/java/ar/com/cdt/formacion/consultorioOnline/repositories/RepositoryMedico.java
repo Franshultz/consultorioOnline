@@ -213,29 +213,6 @@ public class RepositoryMedico {
 		return null;
 	}
 
-	public static Agenda ObtenerAgendaXid(int id_agenda) {
-		String sql = "SELECT * FROM Agenda WHERE id_agenda= ?";
-
-		try (Connection con = Conexion.getInstancia().getConexion();
-			 PreparedStatement stmt = con.prepareStatement(sql)) {
-
-			stmt.setInt(1, id_agenda);
-			ResultSet resultSet = stmt.executeQuery();
-
-			if(resultSet.next()) {
-				return new Agenda (
-						resultSet.getInt("id_agenda"),
-						resultSet.getString("tipo_agenda")
-				);
-			}
-		} catch (SQLException e) {
-			System.out.println("Error al agregar: " + e.getMessage());
-			e.printStackTrace();
-		}
-
-		return null;
-	}
-
 	public static DiaSemana ObtenerDiaSemanaXid(int id_dia) {
 		String sql = "SELECT * FROM Dias WHERE id= ?";
 

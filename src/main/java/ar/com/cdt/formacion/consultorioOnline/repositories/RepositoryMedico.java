@@ -1,12 +1,16 @@
 package ar.com.cdt.formacion.consultorioOnline.repositories;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 
 import ar.com.cdt.formacion.consultorioOnline.dto.MedicoConsultorioResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.MedicoResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioResponse;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.MedicoNoEncontradoException;
 import ar.com.cdt.formacion.consultorioOnline.models.*;
@@ -44,12 +48,12 @@ public class RepositoryMedico {
 		try (Connection con = Conexion.getInstancia().getConexion();
 			 PreparedStatement stmtConsultorio = con.prepareStatement(sqlConsultorio, Statement.RETURN_GENERATED_KEYS)) {
 
-			Time inicio = Time.valueOf(consultorio.getHorarioLaboralInicio() + ":00");  // convierte "08:00" en "08:00:00"
-			Time fin = Time.valueOf(consultorio.getHorarioLaboralFin() + ":00");
+			System.out.println("Insertando horario inicio: " + consultorio.getHorarioLaboralInicio());
+			System.out.println("Insertando horario fin: " + consultorio.getHorarioLaboralFin());
 
 			stmtConsultorio.setString(1, consultorio.getNombreConsultorio());
-			stmtConsultorio.setTime(2, inicio);
-			stmtConsultorio.setTime(3, fin);
+			stmtConsultorio.setTime(2, Time.valueOf(consultorio.getHorarioLaboralInicio()));
+			stmtConsultorio.setTime(3, Time.valueOf(consultorio.getHorarioLaboralFin()));
 			stmtConsultorio.setInt(4, consultorio.getFk_medico());
 			stmtConsultorio.setInt(5, consultorio.getFk_especialidad());
 
@@ -83,6 +87,76 @@ public class RepositoryMedico {
 		}
         return consultorio;
     }
+
+
+	public static void generarTurnosBatch(Consultorio consultorio, List<LocalDateTime> fechasHorarios) {
+		String sql = "INSERT INTO turno (asunto, fecha, hora_inicio, hora_fin, enlace, fk_medico, fk_paciente, fk_especialidad, fk_estado_turno, fk_consultorio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sql)) {
+
+			int duracion = RepositoryMedico.ObtenerEspecialidadXid(consultorio.getFk_especialidad()).getDuracionTurno();
+
+			for (LocalDateTime fechaHora : fechasHorarios) {
+				LocalDate fecha = fechaHora.toLocalDate();
+				LocalTime horaInicio = fechaHora.toLocalTime();
+				LocalTime horaFin = horaInicio.plusMinutes(duracion);
+
+				stmt.setString(1, null);
+				stmt.setDate(2, Date.valueOf(fecha));
+				stmt.setTime(3, Time.valueOf(horaInicio));
+				stmt.setTime(4, Time.valueOf(horaFin));
+				stmt.setString(5, null);
+				stmt.setInt(6, consultorio.getFk_medico());
+				stmt.setNull(7, java.sql.Types.INTEGER);
+				stmt.setInt(8, consultorio.getFk_especialidad());
+				stmt.setInt(9, 1); // estado disponible
+				stmt.setInt(10, consultorio.getIdConsultorio());
+
+				stmt.addBatch(); // Agregamos al batch
+			}
+
+			stmt.executeBatch(); // Ejecutamos todos juntos
+			System.out.println("Se generaron los turnos en batch correctamente.");
+
+		} catch (SQLException e) {
+			System.out.println("Error al generar turnos en batch: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+
+
+	/*public static void generarTurnos(Consultorio consultorio, LocalTime horarioTurnoInicio, LocalDate fecha){
+		String sqlTurnos = "INSERT INTO turno (asunto, fecha, hora_inicio, hora_fin, enlace, fk_medico, fk_paciente, fk_especialidad, fk_estado_turno, fk_consultorio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sqlTurnos)) {
+
+				stmt.setString(1, null);
+				stmt.setDate(2, Date.valueOf(fecha));
+				stmt.setTime(3, Time.valueOf(horarioTurnoInicio));
+				stmt.setTime(4, Time.valueOf(horarioTurnoInicio.plusMinutes(RepositoryMedico.ObtenerEspecialidadXid(consultorio.getFk_especialidad()).getDuracionTurno())));
+				stmt.setString(5,null);
+				stmt.setInt(6, consultorio.getFk_medico());
+				stmt.setNull(7, java.sql.Types.INTEGER);
+				stmt.setInt(8, consultorio.getFk_especialidad());
+				stmt.setInt(9, 1);
+				stmt.setInt(10, consultorio.getIdConsultorio());
+
+				int filasInsertadas = stmt.executeUpdate();
+
+				if (filasInsertadas > 0) {
+					System.out.println("Se agregó el turno exitosamente");
+				} else {
+					System.out.println("No se creo los turnosssss");
+				}
+
+		} catch (SQLException e) {
+			System.out.println("Error al agregar: " + e.getMessage());
+			e.printStackTrace();
+		}
+    }*/
 
 
 	public static int guardarMedico(Medico medico) {
@@ -214,7 +288,7 @@ public class RepositoryMedico {
 	}
 
 	public static DiaSemana ObtenerDiaSemanaXid(int id_dia) {
-		String sql = "SELECT * FROM Dias WHERE id= ?";
+		String sql = "SELECT * FROM Dias WHERE id_dias= ?";
 
 		try (Connection con = Conexion.getInstancia().getConexion();
 			 PreparedStatement stmt = con.prepareStatement(sql)) {
@@ -224,7 +298,7 @@ public class RepositoryMedico {
 
 			if(resultSet.next()) {
 				return new DiaSemana (
-						resultSet.getInt("id"),
+						resultSet.getInt("id_dias"),
 						resultSet.getString("dia")
 				);
 			}
@@ -274,8 +348,8 @@ public class RepositoryMedico {
 				listaConsultorios.add(new Consultorio (
 						resultSet.getInt("id_consultorio"),
 						resultSet.getString("nombre_consultorio"),
-						resultSet.getString("horario_laboral_inicio").toString(),
-						resultSet.getString("horario_laboral_fin").toString(),
+						resultSet.getTime("horario_laboral_inicio").toLocalTime(),
+						resultSet.getTime("horario_laboral_fin").toLocalTime(),
 						fk_medico,
 						ObtenerEspecialidadXid(resultSet.getInt("fk_especialidad")),
 						ObtenerDiasSemanaXconsultorio(resultSet.getInt("id_consultorio")))
@@ -391,7 +465,7 @@ public class RepositoryMedico {
 
 	public static List<MedicoConsultorioResponse> obtenerConsultoriosPorEspecialidad(int idEspecialidad){
 		System.out.println("PEPE ARGENTO   " + idEspecialidad);
-		String sqlConsultorio = "SELECT Consultorio.id_consultorio, Consultorio.nombre_consultorio, Consultorio.horario_laboral_inicio, Consultorio.horario_laboral_fin, Especialidad.especialidad, Especialidad.duracion_turno, Consultorio.fk_medico, Consultorio.fk_especialidad, Usuario.nombre, Usuario.apellido, Usuario.email, GROUP_CONCAT(Dias.dia ORDER BY Dias.dia ASC SEPARATOR ' - ') AS lista_dias FROM Consultorio JOIN Medico ON Consultorio.fk_medico = Medico.id_medico JOIN Usuario ON Medico.fk_usuario = Usuario.id_usuario JOIN Especialidad ON Consultorio.fk_especialidad = Especialidad.id_especialidad LEFT JOIN Consultorio_Dias ON Consultorio.id_consultorio = Consultorio_Dias.fk_consultorio LEFT JOIN Dias ON Consultorio_Dias.fk_dias = Dias.id WHERE Especialidad.id_especialidad = ? GROUP BY Consultorio.id_consultorio";
+		String sqlConsultorio = "SELECT Consultorio.id_consultorio, Consultorio.nombre_consultorio, Consultorio.horario_laboral_inicio, Consultorio.horario_laboral_fin, Especialidad.especialidad, Especialidad.duracion_turno, Consultorio.fk_medico, Consultorio.fk_especialidad, Usuario.nombre, Usuario.apellido, Usuario.email, GROUP_CONCAT(Dias.dia ORDER BY Dias.dia ASC SEPARATOR ' - ') AS lista_dias FROM Consultorio JOIN Medico ON Consultorio.fk_medico = Medico.id_medico JOIN Usuario ON Medico.fk_usuario = Usuario.id_usuario JOIN Especialidad ON Consultorio.fk_especialidad = Especialidad.id_especialidad LEFT JOIN Consultorio_Dias ON Consultorio.id_consultorio = Consultorio_Dias.fk_consultorio LEFT JOIN Dias ON Consultorio_Dias.fk_dias = Dias.id_dias WHERE Especialidad.id_especialidad = ? GROUP BY Consultorio.id_consultorio";
 		List<MedicoConsultorioResponse> listaConsultorios = new ArrayList<MedicoConsultorioResponse>();
 
 		try (Connection con = Conexion.getInstancia().getConexion();
@@ -422,5 +496,54 @@ public class RepositoryMedico {
 			throw new RuntimeException(e);
 		}
     }
+
+	public static UsuarioResponse obtenerMedicoDatosSimples(int fk_medico) {
+		String sqlMedico = "SELECT * FROM usuario JOIN medico ON usuario.id_usuario = medico.fk_usuario WHERE medico.id_medico = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sqlMedico)){
+
+			stmt.setInt(1, fk_medico);
+			ResultSet rs = stmt.executeQuery();
+
+			if (rs.next()) {
+				return new UsuarioResponse(
+						rs.getString("nombre"),
+						rs.getString("apellido"),
+						rs.getInt("dni"),
+						rs.getString("email")
+				);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+        return null;
+    }
+
+	public static Consultorio obtenerConsultorioXid(int fk_consultorio) {
+		String sqlConsultorio = "SELECT * FROM consultorio WHERE id_consultorio = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sqlConsultorio)){
+
+			stmt.setInt(1, fk_consultorio);
+			ResultSet rs = stmt.executeQuery();
+
+			if (rs.next()) {
+				return new Consultorio(
+						rs.getInt("id_consultorio"),
+						rs.getString("nombre_consultorio"),
+                        rs.getTime("horario_laboral_inicio").toLocalTime(),
+                        rs.getTime("horario_laboral_fin").toLocalTime(),
+						rs.getInt("fk_medico"),
+						rs.getInt("fk_especialidad"),
+						RepositoryMedico.ObtenerDiasSemanaXconsultorio(rs.getInt("id_consultorio"))
+				);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return null;
+	}
 
 }

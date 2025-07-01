@@ -100,4 +100,11 @@ public class ServiceMedico {
     public static List<TurnoResponse> obtenerTurnosPorConsultorio(int idConsultorio) {
         return RepositoryTurnos.obtenerTurnosPorConsultorio(idConsultorio);
     }
+    public static List<TurnoResponse> obtenerMisTurnos(int fk_paciente) {
+        return RepositoryTurnos.obtenerMisTurnos(fk_paciente);
+    }
+
+    public static boolean reservarTurno(int idTurno, int fkPaciente) {
+        return RepositoryTurnos.reservarTurno(idTurno, fkPaciente);
+    }
 }

@@ -205,7 +205,7 @@ public class  RepositoryUsuario {
 
 			while(resultSet.next()) {
 				listaDias.add(new DiaSemana (
-						resultSet.getInt("id"),
+						resultSet.getInt("id_dias"),
 						resultSet.getString("dia")
 				));
 			}

@@ -1,6 +1,7 @@
 package ar.com.cdt.formacion.consultorioOnline.models;
 
 import java.sql.Time;
+import java.time.LocalTime;
 import java.util.List;
 
 public class Consultorio {
@@ -11,11 +12,11 @@ public class Consultorio {
 	private int fk_medico;
 	private Medico medico;
 
-	private int fk_especialidad;
 	private Especialidad especialidad;
+	private int fk_especialidad;
 
-	private String horarioLaboralInicio;
-	private String horarioLaboralFin;
+	private LocalTime horarioLaboralInicio;
+	private LocalTime horarioLaboralFin;
 
 	private List<Integer> dias;
 	private List<DiaSemana> diasSemana;
@@ -23,7 +24,17 @@ public class Consultorio {
 
 	public Consultorio() {}
 
-	public Consultorio(int idConsultorio, String nombreConsultorio, String horarioLaboralInicio, String horarioLaboralFin, int fk_medico, Especialidad especialidad , List<DiaSemana> diasSemana) {
+	public Consultorio(int idConsultorio, String nombreConsultorio, LocalTime horarioLaboralInicio, LocalTime horarioLaboralFin, int fk_medico, int fk_especialidad , List<DiaSemana> diasSemana) {
+		this.idConsultorio = idConsultorio;
+		this.nombreConsultorio = nombreConsultorio;
+		this.horarioLaboralInicio = horarioLaboralInicio;
+		this.horarioLaboralFin = horarioLaboralFin;
+		this.fk_medico = fk_medico;
+		this.fk_especialidad = fk_especialidad;
+		this.diasSemana = diasSemana;
+	}
+
+	public Consultorio(int idConsultorio, String nombreConsultorio, LocalTime horarioLaboralInicio, LocalTime horarioLaboralFin, int fk_medico, Especialidad especialidad , List<DiaSemana> diasSemana) {
 		this.idConsultorio = idConsultorio;
 		this.nombreConsultorio = nombreConsultorio;
 		this.horarioLaboralInicio = horarioLaboralInicio;
@@ -41,11 +52,19 @@ public class Consultorio {
 		this.idConsultorio = idConsultorio;
 	}
 
-	public String getHorarioLaboralFin() {
+	public LocalTime getHorarioLaboralInicio() {
+		return horarioLaboralInicio;
+	}
+
+	public void setHorarioLaboralInicio(LocalTime horarioLaboralInicio) {
+		this.horarioLaboralInicio = horarioLaboralInicio;
+	}
+
+	public LocalTime getHorarioLaboralFin() {
 		return horarioLaboralFin;
 	}
 
-	public void setHorarioLaboralFin(String horarioLaboralFin) {
+	public void setHorarioLaboralFin(LocalTime horarioLaboralFin) {
 		this.horarioLaboralFin = horarioLaboralFin;
 	}
 
@@ -57,28 +76,20 @@ public class Consultorio {
 		this.nombreConsultorio = nombreConsultorio;
 	}
 
-	public int getFk_especialidad() {
-		return fk_especialidad;
-	}
-
-	public void setFk_especialidad(int fk_especialidad) {
-		this.fk_especialidad = fk_especialidad;
-	}
-
-	public String getHorarioLaboralInicio() {
-		return horarioLaboralInicio;
-	}
-
-	public void setHorarioLaboralInicio(String horarioLaboralInicio) {
-		this.horarioLaboralInicio = horarioLaboralInicio;
-	}
-
 	public Especialidad getEspecialidad() {
 		return especialidad;
 	}
 
 	public void setEspecialidad(Especialidad especialidad) {
 		this.especialidad = especialidad;
+	}
+
+	public int getFk_especialidad() {
+		return fk_especialidad;
+	}
+
+	public void setFk_especialidad(int fk_especialidad) {
+		this.fk_especialidad = fk_especialidad;
 	}
 
 	public Medico getMedico() {
@@ -113,11 +124,19 @@ public class Consultorio {
 		this.diasSemana = diasSemana;
 	}
 
+
 	@Override
 	public String toString() {
-		return "Consultorio [idConsultorio=" + idConsultorio + ", nombreConsultorio=" + nombreConsultorio + ", medico="
-				+ medico + ", especialidad=" + especialidad + ", horarioLaboralInicio=" + horarioLaboralInicio
-				+ ", horarioLaboralFin=" + horarioLaboralFin + "]";
+		return "Consultorio{" +
+				"idConsultorio=" + idConsultorio +
+				", nombreConsultorio='" + nombreConsultorio + '\'' +
+				", fk_medico=" + fk_medico +
+				", medico=" + medico +
+				", fk_especialidad=" + fk_especialidad +
+				", horarioLaboralInicio=" + horarioLaboralInicio +
+				", horarioLaboralFin=" + horarioLaboralFin +
+				", dias=" + dias +
+				", diasSemana=" + diasSemana +
+				'}';
 	}
-	
 }

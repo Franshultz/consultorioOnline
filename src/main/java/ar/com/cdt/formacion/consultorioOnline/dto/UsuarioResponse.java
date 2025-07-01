@@ -28,6 +28,13 @@ public class UsuarioResponse {
         this.estadoUsuario = estadoUsuario;
     }
 
+    public UsuarioResponse(String nombre, String apellido, int dni, String email) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.dni = dni;
+        this.email = email;
+    }
+
     public int getDni() {
         return dni;
     }

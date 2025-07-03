@@ -18,7 +18,7 @@ public class MedicoConsultorioResponse {
 
     public MedicoConsultorioResponse() {}
 
-    public MedicoConsultorioResponse(int id_consultorio, String nombre_consultorio, String horario_laboral_inicio, String horario_laboral_fin, int fk_especialidad, int fk_medico,String especialidad, int duracion_turno, String nombre, String email, String apellido, String dias_seleccionados) {
+    public MedicoConsultorioResponse(int id_consultorio, String nombre_consultorio, String horario_laboral_inicio, String horario_laboral_fin, int fk_especialidad, int fk_medico,String especialidad, int duracion_turno, String nombre, String apellido ,String email, String dias_seleccionados) {
         this.id_consultorio = id_consultorio;
         this.nombre_consultorio = nombre_consultorio;
         this.horario_laboral_inicio = horario_laboral_inicio;
@@ -28,8 +28,8 @@ public class MedicoConsultorioResponse {
         this.especialidad = especialidad;
         this.duracion_turno = duracion_turno;
         this.nombre = nombre;
-        this.email = email;
         this.apellido = apellido;
+        this.email = email;
         this.dias_seleccionados = dias_seleccionados;
     }
 

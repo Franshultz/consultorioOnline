@@ -90,7 +90,7 @@ public class RepositoryMedico {
 
 
 	public static void generarTurnosBatch(Consultorio consultorio, List<LocalDateTime> fechasHorarios) {
-		String sql = "INSERT INTO turno (asunto, fecha, hora_inicio, hora_fin, enlace, fk_medico, fk_paciente, fk_especialidad, fk_estado_turno, fk_consultorio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO Turno (asunto, fecha, hora_inicio, hora_fin, enlace, fk_medico, fk_paciente, fk_especialidad, fk_estado_turno, fk_consultorio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (Connection con = Conexion.getInstancia().getConexion();
 			 PreparedStatement stmt = con.prepareStatement(sql)) {
@@ -498,7 +498,7 @@ public class RepositoryMedico {
     }
 
 	public static UsuarioResponse obtenerMedicoDatosSimples(int fk_medico) {
-		String sqlMedico = "SELECT * FROM usuario JOIN medico ON usuario.id_usuario = medico.fk_usuario WHERE medico.id_medico = ?";
+		String sqlMedico = "SELECT * FROM Usuario JOIN Medico ON Usuario.id_usuario = Medico.fk_usuario WHERE Medico.id_medico = ?";
 
 		try (Connection con = Conexion.getInstancia().getConexion();
 			 PreparedStatement stmt = con.prepareStatement(sqlMedico)){
@@ -521,7 +521,7 @@ public class RepositoryMedico {
     }
 
 	public static Consultorio obtenerConsultorioXid(int fk_consultorio) {
-		String sqlConsultorio = "SELECT * FROM consultorio WHERE id_consultorio = ?";
+		String sqlConsultorio = "SELECT * FROM Consultorio WHERE id_consultorio = ?";
 
 		try (Connection con = Conexion.getInstancia().getConexion();
 			 PreparedStatement stmt = con.prepareStatement(sqlConsultorio)){

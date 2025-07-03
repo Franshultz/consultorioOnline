@@ -1,19 +1,28 @@
 package ar.com.cdt.formacion.consultorioOnline.repositories;
 
 import ar.com.cdt.formacion.consultorioOnline.dto.TurnoResponse;
+import ar.com.cdt.formacion.consultorioOnline.util.GoogleCalendarMeetService;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.services.calendar.model.Event;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class RepositoryTurnos {
 
+
+    @Autowired
+    private GoogleCalendarMeetService calendarService;
+
     public static List<TurnoResponse> obtenerTurnosPorConsultorio(int idConsultorio) {
-        String TurnosSql = "SELECT * FROM turno WHERE fk_consultorio = ? AND fk_estado_turno = 1";
+        String TurnosSql = "SELECT * FROM Turno WHERE fk_consultorio = ? AND fk_estado_turno = 1";
 
         List<TurnoResponse> listaTurnos = new ArrayList<>();
 
@@ -45,7 +54,7 @@ public class RepositoryTurnos {
 
 
     public static List<TurnoResponse> obtenerMisTurnos(int fk_paciente) {
-        String TurnosSql = "SELECT * FROM turno WHERE fk_estado_turno = 2 AND fk_paciente = ?";
+        String TurnosSql = "SELECT * FROM Turno WHERE fk_estado_turno = 2 AND fk_paciente = ?";
 
         System.out.println("Buscando turnos para paciente: ooooooooooooooooooooOOOOOOOOOOOOOOOOOOO" + fk_paciente);
 
@@ -79,20 +88,33 @@ public class RepositoryTurnos {
     }
 
     public static boolean reservarTurno(int idTurno, int fkPaciente) {
-        String sql = "UPDATE turno SET fk_estado_turno = ?, fk_paciente = ? WHERE id_turno = ?";
+        String sql = "UPDATE Turno SET fk_estado_turno = ?, fk_paciente = ? WHERE id_turno = ?";
 
         try (Connection con = Conexion.getInstancia().getConexion();
              PreparedStatement stmt = con.prepareStatement(sql)) {
 
-            int nuevoEstadoReservado = 2; // Por ejemplo, 2 = reservado
-
+            int nuevoEstadoReservado = 2;
             stmt.setInt(1, nuevoEstadoReservado);
-            stmt.setInt(2, fkPaciente);  // Asignamos el paciente que reserva
+            stmt.setInt(2, fkPaciente);
             stmt.setInt(3, idTurno);
 
             int filasAfectadas = stmt.executeUpdate();
             return filasAfectadas > 0;
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean actualizarEnlaceMeet(int idTurno, String enlaceMeet) {
+        String sql = "UPDATE Turno SET enlace = ? WHERE id_turno = ?";
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, enlaceMeet);
+            stmt.setInt(2, idTurno);
+            stmt.executeUpdate();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;

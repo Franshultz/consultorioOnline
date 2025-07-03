@@ -120,4 +120,48 @@ public class RepositoryPaciente {
         }
         return cobertura;
     }
+
+
+    public void guardarRefreshToken(int fkPaciente, String refreshToken) {
+        String sql = "UPDATE Paciente SET google_refresh_token = ? WHERE id_paciente = ?";
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, refreshToken);
+            stmt.setInt(2, fkPaciente);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void guardarAccessToken(int fkPaciente, String accessToken) {
+        String sql = "UPDATE Paciente SET google_access_token = ? WHERE id_paciente = ?";
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, accessToken);
+            stmt.setInt(2, fkPaciente);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String obtenerRefreshToken(int fkPaciente) {
+        String sql = "SELECT google_refresh_token FROM Paciente WHERE id_paciente = ?";
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+
+            stmt.setInt(1, fkPaciente);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("google_refresh_token");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null; // si no se encuentra
+    }
 }

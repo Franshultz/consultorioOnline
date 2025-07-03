@@ -9,8 +9,8 @@ public class Conexion {
 	private static Conexion instancia;
 	private static final String URL = "jdbc:mysql://localhost:3306/consultorio_online";
 	private static final String USUARIO = "root";
-	private static final String PASSWORD = "canela2022";
-	//private static final String PASSWORD = "cdt123";
+	//private static final String PASSWORD = "canela2022";
+	private static final String PASSWORD = "cdt123";
 
 	private Conexion() {
 		try {

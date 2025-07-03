@@ -2,6 +2,8 @@ package ar.com.cdt.formacion.consultorioOnline.controllers;
 
 import ar.com.cdt.formacion.consultorioOnline.dto.TurnoResponse;
 import ar.com.cdt.formacion.consultorioOnline.service.ServiceMedico;
+import com.google.api.client.auth.oauth2.Credential;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/turnos")
 public class ControllerTurnos {
+    @Autowired
+    private ServiceMedico serviceMedico;
 
     @GetMapping("/consultorio")
     public ResponseEntity<?> obtenerTurnosPorConsultorio (@RequestParam int idConsultorio) {
@@ -43,22 +47,24 @@ public class ControllerTurnos {
         }
     }
 
-    @PutMapping("/{idTurno}/reservar")
+    @PutMapping("/reserva")
     public ResponseEntity<?> reservarTurno(
-            @PathVariable int idTurno,
-            @RequestBody Map<String, Object> payload) {
+            @RequestParam int idTurno,
+            @RequestParam int fk_paciente) {
 
         try {
-            int fkPaciente = (int) payload.get("fk_paciente");
-            boolean exito = ServiceMedico.reservarTurno(idTurno, fkPaciente);
+            boolean exito = serviceMedico.reservarTurno(idTurno, fk_paciente);
+
             if (exito) {
-                return ResponseEntity.ok("Turno reservado");
+                return ResponseEntity.ok("Turno reservado y evento generado correctamente.");
             } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No se pudo reservar el turno");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No se pudo reservar el turno.");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al reservar turno: " + e.getMessage());
         }
     }
 }

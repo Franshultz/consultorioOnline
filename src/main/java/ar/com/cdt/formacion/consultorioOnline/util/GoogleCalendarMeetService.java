@@ -53,7 +53,7 @@ public class GoogleCalendarMeetService {
 
     public GoogleCalendarMeetService() throws Exception {
         httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        InputStream in = GoogleCalendarMeetService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        InputStream in = getClass().getClassLoader().getResourceAsStream("client_google_calendar_meet.json");
         if (in == null) {
             throw new RuntimeException("No se encontró " + CREDENTIALS_FILE_PATH);
         }

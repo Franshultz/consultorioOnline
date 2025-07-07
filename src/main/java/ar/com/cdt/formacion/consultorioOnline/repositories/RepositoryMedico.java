@@ -10,6 +10,7 @@ import java.util.List;
 
 import ar.com.cdt.formacion.consultorioOnline.dto.MedicoConsultorioResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.MedicoResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioIdResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioResponse;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.MedicoNoEncontradoException;
@@ -90,7 +91,7 @@ public class RepositoryMedico {
 
 
 	public static void generarTurnosBatch(Consultorio consultorio, List<LocalDateTime> fechasHorarios) {
-		String sql = "INSERT INTO Turno (asunto, fecha, hora_inicio, hora_fin, enlace, fk_medico, fk_paciente, fk_especialidad, fk_estado_turno, fk_consultorio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO Turno (fecha, hora_inicio, hora_fin, enlace, fk_medico, fk_paciente, fk_especialidad, fk_estado_turno, fk_consultorio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (Connection con = Conexion.getInstancia().getConexion();
 			 PreparedStatement stmt = con.prepareStatement(sql)) {
@@ -102,16 +103,15 @@ public class RepositoryMedico {
 				LocalTime horaInicio = fechaHora.toLocalTime();
 				LocalTime horaFin = horaInicio.plusMinutes(duracion);
 
-				stmt.setString(1, null);
-				stmt.setDate(2, Date.valueOf(fecha));
-				stmt.setTime(3, Time.valueOf(horaInicio));
-				stmt.setTime(4, Time.valueOf(horaFin));
-				stmt.setString(5, null);
-				stmt.setInt(6, consultorio.getFk_medico());
-				stmt.setNull(7, java.sql.Types.INTEGER);
-				stmt.setInt(8, consultorio.getFk_especialidad());
-				stmt.setInt(9, 1); // estado disponible
-				stmt.setInt(10, consultorio.getIdConsultorio());
+				stmt.setDate(1, Date.valueOf(fecha));
+				stmt.setTime(2, Time.valueOf(horaInicio));
+				stmt.setTime(3, Time.valueOf(horaFin));
+				stmt.setString(4, null);
+				stmt.setInt(5, consultorio.getFk_medico());
+				stmt.setNull(6, java.sql.Types.INTEGER);
+				stmt.setInt(7, consultorio.getFk_especialidad());
+				stmt.setInt(8, 1); // estado disponible
+				stmt.setInt(9, consultorio.getIdConsultorio());
 
 				stmt.addBatch(); // Agregamos al batch
 			}
@@ -364,6 +364,28 @@ public class RepositoryMedico {
 	}
 
 
+	public static int obtenerIDmedico (int fk_usuario) {
+		String sqlIdMedico = "SELECT id_medico FROM Medico WHERE fk_usuario = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sqlIdMedico)) {
+			stmt.setInt(1, fk_usuario);
+
+			ResultSet resultSet = stmt.executeQuery();
+
+			if (resultSet.next()) {
+				return resultSet.getInt("id_medico");
+			} else {
+				throw new IllegalStateException("No se encontró medico con fk_usuario: " + fk_usuario);
+			}
+
+
+		} catch (SQLException e) {
+			throw new DatabaseException("Error al acceder a la base de datos", e);
+		}
+    }
+
+
 
 
 
@@ -380,7 +402,7 @@ public class RepositoryMedico {
 			ResultSet resultSet = stmt.executeQuery();
 
 			if (resultSet.next()) {
-				medico.setFk_usuario(fk_usuario);
+				medico.setId_usuario(fk_usuario);
 				medico.setNombre(resultSet.getString("nombre"));
 				medico.setApellido(resultSet.getString("apellido"));
 				medico.setEmail(resultSet.getString("email"));

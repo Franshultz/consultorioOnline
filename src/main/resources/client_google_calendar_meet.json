@@ -1,1 +1,4 @@
-{"web":{"client_id":"354913420083-7bdodi2qi25b8niuif9g8f1cqk2plkd4.apps.googleusercontent.com","project_id":"arctic-surf-464718-h4","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost:8080/oauth2callback"]}}
+{"web":{"client_id":"354913420083-7bdodi2qi25b8niuif9g8f1cqk2plkd4.apps.googleusercontent.com","project_id":"arctic-surf-464718-h4","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris": [
+  "http://localhost:8080/oauth2callback",
+  "http://localhost:5173/oauth2callback"
+]}}

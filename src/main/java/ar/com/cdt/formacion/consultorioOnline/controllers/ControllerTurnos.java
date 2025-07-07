@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -19,20 +20,19 @@ public class ControllerTurnos {
     private ServiceMedico serviceMedico;
 
     @GetMapping("/consultorio")
-    public ResponseEntity<?> obtenerTurnosPorConsultorio (@RequestParam int idConsultorio) {
-
+    public ResponseEntity<?> obtenerTurnosPorConsultorioYfecha(@RequestParam int idConsultorio, @RequestParam LocalDate fecha
+    ) {
         try {
-            List<TurnoResponse> turnos = ServiceMedico.obtenerTurnosPorConsultorio(idConsultorio);
+            List<TurnoResponse> turnos = ServiceMedico.obtenerTurnosPorConsultorioYFecha(idConsultorio, fecha);
             return ResponseEntity.ok(turnos);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al obtener los turnos: " + e.getMessage());
         }
     }
 
-    @GetMapping("/consultorioMisTurnos")
+    @GetMapping("/misTurnos")
     public ResponseEntity<?> obtenerMisTurnos(@RequestParam int idPaciente) {
         System.out.println("palalsaplspalspalsplapslapslaplspala" + idPaciente);
 
@@ -47,10 +47,24 @@ public class ControllerTurnos {
         }
     }
 
+    @GetMapping("/historicos")
+    public ResponseEntity<?> obtenerHistoricos(@RequestParam int idPaciente) {
+        System.out.println("palalsaplspalspalsplapslapslaplspala" + idPaciente);
+
+        try {
+            List<TurnoResponse> turnos = ServiceMedico.obtenerHistoricos(idPaciente);
+            return ResponseEntity.ok(turnos);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener los turnos: " + e.getMessage());
+        }
+    }
+
+
     @PutMapping("/reserva")
-    public ResponseEntity<?> reservarTurno(
-            @RequestParam int idTurno,
-            @RequestParam int fk_paciente) {
+    public ResponseEntity<?> reservarTurno(@RequestParam int idTurno, @RequestParam int fk_paciente) {
 
         try {
             boolean exito = serviceMedico.reservarTurno(idTurno, fk_paciente);

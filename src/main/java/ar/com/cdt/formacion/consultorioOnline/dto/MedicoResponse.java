@@ -16,8 +16,13 @@ public class MedicoResponse extends UsuarioResponse {
         super();
     }
 
-    public MedicoResponse(String nombre, int fk_usuario, int dni, String apellido, String email, LocalDate fechaNacimiento, Genero genero, EstadoUsuario estadoUsuario, int idMedico, String matricula, List<Consultorio> listaConsultorio, List<Especialidad> listaEspecialidades) {
-        super(nombre, fk_usuario, dni, apellido, email, fechaNacimiento, genero, estadoUsuario);
+    public MedicoResponse(int id_usuario, int idMedico){
+        super(id_usuario);
+        this.idMedico = idMedico;
+    }
+
+    public MedicoResponse(String nombre, int id_usuario, int dni, String apellido, String email, LocalDate fechaNacimiento, Genero genero, EstadoUsuario estadoUsuario, int idMedico, String matricula, List<Consultorio> listaConsultorio, List<Especialidad> listaEspecialidades) {
+        super(nombre, id_usuario, dni, apellido, email, fechaNacimiento, genero, estadoUsuario);
         this.idMedico = idMedico;
         this.matricula = matricula;
         this.listaConsultorio = listaConsultorio;

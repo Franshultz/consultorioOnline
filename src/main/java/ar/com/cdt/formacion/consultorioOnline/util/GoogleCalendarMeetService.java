@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -125,7 +126,7 @@ public class GoogleCalendarMeetService {
 
 
     @GetMapping("/oauth2callback")
-    public String oauth2callback(@RequestParam("code") String code, @RequestParam("state") String state) {
+    public void oauth2callback(@RequestParam("code") String code, @RequestParam("state") String state, HttpServletResponse response) throws IOException {
         try {
             int fkPaciente = Integer.parseInt(state);
 
@@ -137,20 +138,15 @@ public class GoogleCalendarMeetService {
             repositoryPaciente.guardarRefreshToken(fkPaciente, refreshToken);
             repositoryPaciente.guardarAccessToken(fkPaciente, accessToken);
 
-            return "Autorización exitosa para paciente id: " + fkPaciente;
+            // Producción (React desplegado con contexto base)
+            // response.sendRedirect("/consultorioOnlineFront/turnos");
+
+            // Desarrollo local (React corriendo en puerto 5173 sin contexto)
+            response.sendRedirect("http://localhost:5173/consultorioOnlineFront/home-paciente");
 
         } catch (Exception e) {
-            // Imprime toda la pila de errores en consola
             e.printStackTrace();
-
-            // Devuelve el error completo como string (para que lo veas en el navegador)
-            StringBuilder sb = new StringBuilder();
-            sb.append("Error durante la autorización:\n");
-            sb.append(e.toString()).append("\n");
-            for (StackTraceElement ste : e.getStackTrace()) {
-                sb.append("\tat ").append(ste.toString()).append("\n");
-            }
-            return sb.toString();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error durante la autorización");
         }
     }
 

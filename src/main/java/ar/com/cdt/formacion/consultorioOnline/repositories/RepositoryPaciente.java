@@ -1,6 +1,8 @@
 package ar.com.cdt.formacion.consultorioOnline.repositories;
 
+import ar.com.cdt.formacion.consultorioOnline.dto.MedicoResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.PacienteResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioIdResponse;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.PacienteNoEncontradoException;
 import ar.com.cdt.formacion.consultorioOnline.models.Paciente;
@@ -57,6 +59,28 @@ public class RepositoryPaciente {
     }
 
 
+    public static int obtenerIDpaciente (int fk_usuario) {
+        String sqlIdPaciente = "SELECT id_paciente FROM Paciente WHERE fk_usuario = ?";
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sqlIdPaciente)) {
+
+            stmt.setInt(1, fk_usuario);
+            ResultSet resultSet = stmt.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getInt("id_paciente");
+            } else {
+                throw new IllegalStateException("No se encontró paciente con fk_usuario: " + fk_usuario);
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Error al acceder a la base de datos", e);
+        }
+    }
+
+
+
     public static PacienteResponse ObtenerPacienteCompleto(int fk_usuario) {
         String sqlUsuario = "SELECT * FROM Usuario WHERE id_usuario = ?";
         String sqlPaciente = "SELECT * FROM Paciente WHERE fk_usuario = ?";
@@ -69,7 +93,7 @@ public class RepositoryPaciente {
 
             if (resultSet.next()) {
                 PacienteResponse paciente = new PacienteResponse();
-                paciente.setFk_usuario(fk_usuario);
+                paciente.setId_usuario(fk_usuario);
                 paciente.setNombre(resultSet.getString("nombre"));
                 paciente.setApellido(resultSet.getString("apellido"));
                 paciente.setEmail(resultSet.getString("email"));

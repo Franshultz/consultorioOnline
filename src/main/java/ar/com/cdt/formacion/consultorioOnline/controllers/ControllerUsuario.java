@@ -2,6 +2,7 @@ package ar.com.cdt.formacion.consultorioOnline.controllers;
 
 import ar.com.cdt.formacion.consultorioOnline.dto.LoginRequest;
 import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioAutocompletadoResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioIdResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioResponse;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.CredencialesInvalidasException;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
@@ -24,13 +25,12 @@ public class ControllerUsuario {
     @PostMapping("/sesion")
     public ResponseEntity<?> iniciarSesion(@RequestBody LoginRequest loginRequest) {
         try {
-            UsuarioResponse user = ServiceUsuario.iniciarSesion(loginRequest);
-            System.out.println(user.getDni());
+            String token = ServiceUsuario.iniciarSesion(loginRequest);
             return ResponseEntity
                     .status(HttpStatus.OK) // 200 OK
                     .body(Map.of(
                             "message", "Inicio de sesión exitoso",
-                            "usuario", user
+                            "token", token
                     ));
         } catch (CredencialesInvalidasException e) {
             return ResponseEntity

@@ -79,11 +79,21 @@ public class ServiceMedico {
         return RepositoryMedico.obtenerConsultoriosPorEspecialidad(idEspecialidad);
     }
 
-    public static List<TurnoResponse> obtenerTurnosPorConsultorio(int idConsultorio) {
-        return RepositoryTurnos.obtenerTurnosPorConsultorio(idConsultorio);
+    public static List<TurnoResponse> obtenerTurnosPorConsultorioYFecha(int idConsultorio, LocalDate fecha) {
+        RepositoryTurnos.actualizarEstadoTurnosVencidos();
+
+        return RepositoryTurnos.obtenerTurnosPorConsultorioYFecha(idConsultorio, fecha);
     }
     public static List<TurnoResponse> obtenerMisTurnos(int fk_paciente) {
+        RepositoryTurnos.actualizarEstadoTurnosVencidos();
+
         return RepositoryTurnos.obtenerMisTurnos(fk_paciente);
+    }
+
+    public static List<TurnoResponse> obtenerHistoricos(int fk_paciente) {
+        RepositoryTurnos.actualizarEstadoTurnosVencidos();
+
+        return RepositoryTurnos.obtenerHistoricos(fk_paciente);
     }
 
     public boolean reservarTurno(int idTurno, int fkPaciente) {

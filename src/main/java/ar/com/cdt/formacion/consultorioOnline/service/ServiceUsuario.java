@@ -6,6 +6,8 @@ import ar.com.cdt.formacion.consultorioOnline.models.*;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryMedico;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryPaciente;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryUsuario;
+import ar.com.cdt.formacion.consultorioOnline.util.JwtUtil;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 
@@ -14,39 +16,91 @@ import java.util.List;
 @Service
 public class ServiceUsuario {
 
-    public static UsuarioResponse iniciarSesion(LoginRequest loginRequest) {
+//    public static UsuarioResponse iniciarSesion(LoginRequest loginRequest) {
+//        try {
+//            if (RepositoryUsuario.existeUsuarioXdni(loginRequest.getDni(), loginRequest.getClave())) {
+//                int fk_usuario = RepositoryUsuario.obtenerIdUsuarioXdni(loginRequest.getDni(), loginRequest.getClave());
+//
+//                boolean esMedico = RepositoryMedico.existeMedico(fk_usuario);
+//                boolean esPaciente = RepositoryPaciente.existePaciente(fk_usuario);
+//
+//                if (esMedico && esPaciente) {
+//                    //MedicoResponse medico = RepositoryMedico.ObtenerMedicoCompleto(fk_usuario);
+//                    MedicoResponse medico = RepositoryMedico.obtenerIDmedico(fk_usuario);
+//                    //PacienteResponse paciente = RepositoryPaciente.ObtenerPacienteCompleto(fk_usuario);
+//                    PacienteResponse paciente = RepositoryPaciente.obtenerIDpaciente(fk_usuario);
+//
+//                    return new UsuarioMultipleResponse(medico, paciente);
+//                } else if (esMedico) {
+//                    return RepositoryMedico.obtenerIDmedico(fk_usuario);
+//                } else if (esPaciente) {
+//                    System.out.println("poooooooooooooooooooooooooooooooosossooasoa");
+//                    return RepositoryPaciente.obtenerIDpaciente(fk_usuario);
+//                }
+//            } else {
+//                throw new CredencialesInvalidasException("DNI o contraseña incorrectos");
+//            }
+//        } catch (DatabaseException e) {
+//            System.err.println("Error en base de datos durante iniciarSesion: " + e.getMessage());
+//            throw e;
+//        } catch (MedicoNoEncontradoException | PacienteNoEncontradoException e) {
+//            System.err.println("Se encontro un usuario pero no se pudo obtener su perfil: " + e.getMessage());
+//            throw e;
+//        } catch (Exception e) {
+//            // Opcionalmente podés lanzar una excepción custom aquí también
+//            throw new RuntimeException("Error inesperado en iniciarSesion", e);
+//        }
+//        throw new IllegalStateException("Flujo no alcanzable en iniciarSesion");
+//    }
+
+    public static String iniciarSesion(LoginRequest loginRequest) {
         try {
+            UsuarioIdResponse user = new UsuarioIdResponse();
+
             if (RepositoryUsuario.existeUsuarioXdni(loginRequest.getDni(), loginRequest.getClave())) {
                 int fk_usuario = RepositoryUsuario.obtenerIdUsuarioXdni(loginRequest.getDni(), loginRequest.getClave());
+
+                user.setIdUsuario(fk_usuario);
 
                 boolean esMedico = RepositoryMedico.existeMedico(fk_usuario);
                 boolean esPaciente = RepositoryPaciente.existePaciente(fk_usuario);
 
                 if (esMedico && esPaciente) {
-                    MedicoResponse medico = RepositoryMedico.ObtenerMedicoCompleto(fk_usuario);
-                    PacienteResponse paciente = RepositoryPaciente.ObtenerPacienteCompleto(fk_usuario);
+                    int idMedico = RepositoryMedico.obtenerIDmedico(fk_usuario);
+                    int idPaciente = RepositoryPaciente.obtenerIDpaciente(fk_usuario);
+                    user.setIdMedico(idMedico);
+                    user.setIdPaciente(idPaciente);
+                    user.setRequiereSeleccion(true);
 
-                    return new UsuarioMultipleResponse(medico, paciente);
                 } else if (esMedico) {
-                    return RepositoryMedico.ObtenerMedicoCompleto(fk_usuario);
+                    int idMedico = RepositoryMedico.obtenerIDmedico(fk_usuario);
+                    user.setIdMedico(idMedico);
+
                 } else if (esPaciente) {
-                    return RepositoryPaciente.ObtenerPacienteCompleto(fk_usuario);
+                    int idPaciente = RepositoryPaciente.obtenerIDpaciente(fk_usuario);
+                    user.setIdPaciente(idPaciente);
                 }
+
+                String token = JwtUtil.generarToken(user);
+                return token;
+
             } else {
                 throw new CredencialesInvalidasException("DNI o contraseña incorrectos");
             }
+
         } catch (DatabaseException e) {
             System.err.println("Error en base de datos durante iniciarSesion: " + e.getMessage());
             throw e;
+
         } catch (MedicoNoEncontradoException | PacienteNoEncontradoException e) {
-            System.err.println("Se encontro un usuario pero no se pudo obtener su perfil: " + e.getMessage());
+            System.err.println("Se encontró un usuario pero no se pudo obtener su perfil: " + e.getMessage());
             throw e;
+
         } catch (Exception e) {
-            // Opcionalmente podés lanzar una excepción custom aquí también
             throw new RuntimeException("Error inesperado en iniciarSesion", e);
         }
-        throw new IllegalStateException("Flujo no alcanzable en iniciarSesion");
     }
+
 
 
     public static int registrarUsuarioMedico(Medico medico) {

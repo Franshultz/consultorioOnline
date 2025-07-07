@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 public class UsuarioResponse {
 
-    private int dni, fk_usuario;
+    private int dni, id_usuario;
     private String nombre, apellido, email;
     private LocalDate fechaNacimiento;
     private Genero genero;
@@ -17,9 +17,13 @@ public class UsuarioResponse {
 
     }
 
-    public UsuarioResponse(String nombre, int fk_usuario, int dni, String apellido, String email, LocalDate fechaNacimiento, Genero genero, EstadoUsuario estadoUsuario) {
+    public UsuarioResponse(int id_usuario) {
+        this.id_usuario = id_usuario;
+    }
+
+    public UsuarioResponse(String nombre, int id_usuario, int dni, String apellido, String email, LocalDate fechaNacimiento, Genero genero, EstadoUsuario estadoUsuario) {
         this.nombre = nombre;
-        this.fk_usuario = fk_usuario;
+        this.id_usuario = id_usuario;
         this.dni = dni;
         this.apellido = apellido;
         this.email = email;
@@ -43,12 +47,12 @@ public class UsuarioResponse {
         this.dni = dni;
     }
 
-    public int getFk_usuario() {
-        return fk_usuario;
+    public int getId_usuario() {
+        return id_usuario;
     }
 
-    public void setFk_usuario(int fk_usuario) {
-        this.fk_usuario = fk_usuario;
+    public void setId_usuario(int id_usuario) {
+        this.id_usuario = id_usuario;
     }
 
     public String getNombre() {

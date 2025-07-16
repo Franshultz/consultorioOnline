@@ -8,10 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import ar.com.cdt.formacion.consultorioOnline.dto.MedicoConsultorioResponse;
-import ar.com.cdt.formacion.consultorioOnline.dto.MedicoResponse;
-import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioIdResponse;
-import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.*;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.MedicoNoEncontradoException;
 import ar.com.cdt.formacion.consultorioOnline.models.*;
@@ -124,39 +121,6 @@ public class RepositoryMedico {
 			e.printStackTrace();
 		}
 	}
-
-
-
-	/*public static void generarTurnos(Consultorio consultorio, LocalTime horarioTurnoInicio, LocalDate fecha){
-		String sqlTurnos = "INSERT INTO turno (asunto, fecha, hora_inicio, hora_fin, enlace, fk_medico, fk_paciente, fk_especialidad, fk_estado_turno, fk_consultorio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-		try (Connection con = Conexion.getInstancia().getConexion();
-			 PreparedStatement stmt = con.prepareStatement(sqlTurnos)) {
-
-				stmt.setString(1, null);
-				stmt.setDate(2, Date.valueOf(fecha));
-				stmt.setTime(3, Time.valueOf(horarioTurnoInicio));
-				stmt.setTime(4, Time.valueOf(horarioTurnoInicio.plusMinutes(RepositoryMedico.ObtenerEspecialidadXid(consultorio.getFk_especialidad()).getDuracionTurno())));
-				stmt.setString(5,null);
-				stmt.setInt(6, consultorio.getFk_medico());
-				stmt.setNull(7, java.sql.Types.INTEGER);
-				stmt.setInt(8, consultorio.getFk_especialidad());
-				stmt.setInt(9, 1);
-				stmt.setInt(10, consultorio.getIdConsultorio());
-
-				int filasInsertadas = stmt.executeUpdate();
-
-				if (filasInsertadas > 0) {
-					System.out.println("Se agregó el turno exitosamente");
-				} else {
-					System.out.println("No se creo los turnosssss");
-				}
-
-		} catch (SQLException e) {
-			System.out.println("Error al agregar: " + e.getMessage());
-			e.printStackTrace();
-		}
-    }*/
 
 
 	public static int guardarMedico(Medico medico) {

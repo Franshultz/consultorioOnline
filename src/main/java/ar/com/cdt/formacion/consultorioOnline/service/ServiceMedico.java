@@ -1,17 +1,14 @@
 package ar.com.cdt.formacion.consultorioOnline.service;
 
-
 import ar.com.cdt.formacion.consultorioOnline.dto.MedicoConsultorioResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.TurnoResponse;
 import ar.com.cdt.formacion.consultorioOnline.models.Consultorio;
-import ar.com.cdt.formacion.consultorioOnline.models.DiaSemana;
 import ar.com.cdt.formacion.consultorioOnline.models.Especialidad;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryMedico;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryPaciente;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryTurnos;
 import ar.com.cdt.formacion.consultorioOnline.util.GoogleCalendarMeetService;
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.services.calendar.model.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +26,12 @@ public class ServiceMedico {
     private RepositoryPaciente repositoryPaciente;
 
 
-    public static Consultorio registrarConsultorio(Consultorio consultorio) {
+    public Consultorio registrarConsultorio(Consultorio consultorio) {
         Consultorio consultorioCreado = RepositoryMedico.guardarConsultorio(consultorio);
 
         int minutosLaborales = (int) Duration.between(consultorioCreado.getHorarioLaboralInicio(), consultorioCreado.getHorarioLaboralFin()).toMinutes();
         int cantidadTurnosXdia = minutosLaborales/RepositoryMedico.ObtenerEspecialidadXid(consultorioCreado.getFk_especialidad()).getDuracionTurno();
 
-        System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" + cantidadTurnosXdia);
         LocalDate hoy = LocalDate.now();
         LocalDate fin = hoy.plusDays(60);
 
@@ -75,11 +71,11 @@ public class ServiceMedico {
         return RepositoryMedico.obtenerEspecialidadesPorMedico(idMedico);
     }
 
-    public static List<MedicoConsultorioResponse> obtenerConsultoriosPorEspecialidad(int idEspecialidad) {
+    public List<MedicoConsultorioResponse> obtenerConsultoriosPorEspecialidad(int idEspecialidad) {
         return RepositoryMedico.obtenerConsultoriosPorEspecialidad(idEspecialidad);
     }
 
-    public static List<TurnoResponse> obtenerTurnosPorConsultorioYFecha(int idConsultorio, LocalDate fecha) {
+    public List<TurnoResponse> obtenerTurnosPorConsultorioYFecha(int idConsultorio, LocalDate fecha) {
         RepositoryTurnos.actualizarEstadoTurnosVencidos();
 
         return RepositoryTurnos.obtenerTurnosPorConsultorioYFecha(idConsultorio, fecha);
@@ -97,29 +93,47 @@ public class ServiceMedico {
     }
 
     public boolean reservarTurno(int idTurno, int fkPaciente) {
+        // 1. Reservar el turno en la base de datos
         boolean reservado = RepositoryTurnos.reservarTurno(idTurno, fkPaciente);
         if (!reservado) return false;
 
         try {
-            // Aquí deberías obtener el horario real del turno, no ZonedDateTime.now()
-            ZonedDateTime inicio = ZonedDateTime.now();  // sacalo de la info del turno
-            ZonedDateTime fin = inicio.plusMinutes(30);
+            // 2. Obtener horario real del turno (inicio y fin)
+            ZonedDateTime[] horarios = RepositoryTurnos.obtenerHorario(idTurno);
+            ZonedDateTime inicio = horarios[0];
+            ZonedDateTime fin = horarios[1];
 
+            // 3. Obtener refresh token para Google Calendar del paciente
             String refreshToken = repositoryPaciente.obtenerRefreshToken(fkPaciente);
             if (refreshToken == null) {
                 System.out.println("Paciente no autorizado con Google Calendar");
                 return false;
             }
 
+            // 4. Crear credenciales OAuth con el refresh token
             Credential cred = calendarService.crearCredentialConRefreshToken(refreshToken);
 
+            // 5. Crear evento en Google Calendar con enlace Meet
             String enlaceMeet = calendarService.crearEventoConMeet(cred, "Turno médico", inicio, fin);
 
+            // 6. Guardar enlace Meet en la base de datos
             return RepositoryTurnos.actualizarEnlaceMeet(idTurno, enlaceMeet);
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
+
+    public static  boolean cancelarTurno(int idTurno) {
+        boolean cancelado = RepositoryTurnos.cancelarTurno(idTurno);
+        return cancelado;
+    }
+
+    public List<Consultorio> obtenerConsultoriosXidMedico(int idMedico) {
+
+        return RepositoryMedico.ObtenerListaConsultoriosXid(idMedico);
+    }
+
 
 }

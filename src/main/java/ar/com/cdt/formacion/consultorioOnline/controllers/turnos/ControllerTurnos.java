@@ -1,8 +1,7 @@
-package ar.com.cdt.formacion.consultorioOnline.controllers;
+package ar.com.cdt.formacion.consultorioOnline.controllers.turnos;
 
 import ar.com.cdt.formacion.consultorioOnline.dto.TurnoResponse;
 import ar.com.cdt.formacion.consultorioOnline.service.ServiceMedico;
-import com.google.api.client.auth.oauth2.Credential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @CrossOrigin("*")
 @RestController
@@ -19,11 +17,10 @@ public class ControllerTurnos {
     @Autowired
     private ServiceMedico serviceMedico;
 
-    @GetMapping("/consultorio")
-    public ResponseEntity<?> obtenerTurnosPorConsultorioYfecha(@RequestParam int idConsultorio, @RequestParam LocalDate fecha
-    ) {
+    @GetMapping("/{idConsultorio}")
+    public ResponseEntity<?> obtenerTurnosPorConsultorioYfecha(@PathVariable int idConsultorio, @RequestParam LocalDate fecha) {
         try {
-            List<TurnoResponse> turnos = ServiceMedico.obtenerTurnosPorConsultorioYFecha(idConsultorio, fecha);
+            List<TurnoResponse> turnos = serviceMedico.obtenerTurnosPorConsultorioYFecha(idConsultorio, fecha);
             return ResponseEntity.ok(turnos);
         } catch (Exception e) {
             e.printStackTrace();
@@ -32,10 +29,8 @@ public class ControllerTurnos {
         }
     }
 
-    @GetMapping("/misTurnos")
+    @GetMapping("/mis-turnos")
     public ResponseEntity<?> obtenerMisTurnos(@RequestParam int idPaciente) {
-        System.out.println("palalsaplspalspalsplapslapslaplspala" + idPaciente);
-
         try {
             List<TurnoResponse> turnos = ServiceMedico.obtenerMisTurnos(idPaciente);
             return ResponseEntity.ok(turnos);
@@ -47,9 +42,8 @@ public class ControllerTurnos {
         }
     }
 
-    @GetMapping("/historicos")
-    public ResponseEntity<?> obtenerHistoricos(@RequestParam int idPaciente) {
-        System.out.println("palalsaplspalspalsplapslapslaplspala" + idPaciente);
+    @GetMapping("/historicos/{idPaciente}")
+    public ResponseEntity<?> obtenerHistoricos(@PathVariable int idPaciente) {
 
         try {
             List<TurnoResponse> turnos = ServiceMedico.obtenerHistoricos(idPaciente);
@@ -63,8 +57,8 @@ public class ControllerTurnos {
     }
 
 
-    @PutMapping("/reserva")
-    public ResponseEntity<?> reservarTurno(@RequestParam int idTurno, @RequestParam int fk_paciente) {
+    @PutMapping("/reserva/{idTurno}")
+    public ResponseEntity<?> reservarTurno(@PathVariable int idTurno, @RequestParam int fk_paciente) {
 
         try {
             boolean exito = serviceMedico.reservarTurno(idTurno, fk_paciente);
@@ -79,6 +73,25 @@ public class ControllerTurnos {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al reservar turno: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/cancelar/{idTurno}")
+    public ResponseEntity<?> cancelarTurno(@PathVariable int idTurno) {
+
+        try {
+            boolean exito = serviceMedico.cancelarTurno(idTurno);
+
+            if (exito) {
+                return ResponseEntity.ok("Turno cancelado correctamente.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No se pudo cancelar el turno.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al cancelar turno: " + e.getMessage());
         }
     }
 }

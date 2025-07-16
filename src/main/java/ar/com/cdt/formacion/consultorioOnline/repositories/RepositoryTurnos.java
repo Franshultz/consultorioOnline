@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,6 +151,27 @@ public class RepositoryTurnos {
         }
     }
 
+    public static boolean cancelarTurno(int idTurno) {
+        String sql = "UPDATE Turno SET fk_estado_turno = ?, fk_paciente = ?, enlace = ? WHERE id_turno = ?";
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+
+            int nuevoEstadoDisponible = 1;
+            stmt.setInt(1, nuevoEstadoDisponible);
+            stmt.setNull(2, java.sql.Types.INTEGER);
+            stmt.setNull(3, java.sql.Types.VARCHAR);
+            stmt.setInt(4, idTurno);
+
+            int filasAfectadas = stmt.executeUpdate();
+            return filasAfectadas > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static boolean actualizarEnlaceMeet(int idTurno, String enlaceMeet) {
         String sql = "UPDATE Turno SET enlace = ? WHERE id_turno = ?";
         try (Connection con = Conexion.getInstancia().getConexion();
@@ -183,5 +206,38 @@ public class RepositoryTurnos {
             throw new RuntimeException(e);
         }
     }
+
+    public static ZonedDateTime[] obtenerHorario(int idTurno) {
+        String sqlHorarios = "SELECT fecha, hora_inicio, hora_fin FROM Turno WHERE id_turno = ?";
+
+        ZonedDateTime[] horarios = new ZonedDateTime[2];
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sqlHorarios)) {
+
+            // Setear el parámetro
+            stmt.setInt(1, idTurno);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                LocalDate fecha = rs.getDate("fecha").toLocalDate();
+                LocalTime horaInicio = rs.getTime("hora_inicio").toLocalTime();
+                LocalTime horaFin = rs.getTime("hora_fin").toLocalTime();
+
+                // Zona horaria deseada
+                ZoneId zona = ZoneId.of("America/Argentina/Buenos_Aires");
+
+                horarios[0] = ZonedDateTime.of(fecha, horaInicio, zona);
+                horarios[1] = ZonedDateTime.of(fecha, horaFin, zona);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al obtener horarios del turno", e);
+        }
+
+        return horarios;
+    }
+
 
 }

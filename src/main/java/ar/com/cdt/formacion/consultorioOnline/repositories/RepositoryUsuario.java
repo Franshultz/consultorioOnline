@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import ar.com.cdt.formacion.consultorioOnline.dto.NombreCompletoResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioAutocompletadoResponse;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
 import ar.com.cdt.formacion.consultorioOnline.models.*;
@@ -348,5 +349,26 @@ public class  RepositoryUsuario {
 			return false;
 		}
         return false;
+    }
+
+	public static NombreCompletoResponse obtenerNombreCompleto(int idUsuario){
+		String sql = "SELECT nombre, apellido FROM Usuario WHERE id_usuario = ?";
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sql)) {
+
+			stmt.setInt(1, idUsuario);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+
+				return new NombreCompletoResponse(
+						rs.getString("nombre"),
+						rs.getString("apellido")
+				);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        return null;
     }
 }

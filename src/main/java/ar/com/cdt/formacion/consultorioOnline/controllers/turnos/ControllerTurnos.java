@@ -29,10 +29,23 @@ public class ControllerTurnos {
         }
     }
 
-    @GetMapping("/mis-turnos")
+    @GetMapping("/misturnos")
     public ResponseEntity<?> obtenerMisTurnos(@RequestParam int idPaciente) {
         try {
             List<TurnoResponse> turnos = ServiceMedico.obtenerMisTurnos(idPaciente);
+            return ResponseEntity.ok(turnos);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener los turnos: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/misturnosmedico")
+    public ResponseEntity<?> obtenerMisTurnosMedico(@RequestParam int idMedico) {
+        try {
+            List<TurnoResponse> turnos = ServiceMedico.obtenerMisTurnosMedico(idMedico);
             return ResponseEntity.ok(turnos);
         }
         catch (Exception e) {
@@ -47,6 +60,20 @@ public class ControllerTurnos {
 
         try {
             List<TurnoResponse> turnos = ServiceMedico.obtenerHistoricos(idPaciente);
+            return ResponseEntity.ok(turnos);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener los turnos: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/historicosmedico/{idMedico}")
+    public ResponseEntity<?> obtenerHistoricosMedico(@PathVariable int idMedico) {
+
+        try {
+            List<TurnoResponse> turnos = ServiceMedico.obtenerHistoricosMedico(idMedico);
             return ResponseEntity.ok(turnos);
         }
         catch (Exception e) {

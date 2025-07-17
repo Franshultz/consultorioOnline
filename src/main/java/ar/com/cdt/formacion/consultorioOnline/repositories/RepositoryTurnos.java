@@ -95,6 +95,40 @@ public class RepositoryTurnos {
         return listaTurnos;
     }
 
+    public static List<TurnoResponse> obtenerMisTurnosMedico(int idMedico) {
+        String TurnosSql = "SELECT * FROM Turno WHERE fk_estado_turno = 2 AND fk_medico = ?";
+
+        System.out.println("Buscando turnos para paciente: ooooooooooooooooooooOOOOOOOOOOOOOOOOOOO" + idMedico);
+
+
+        List<TurnoResponse> listaTurnos = new ArrayList<>();
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(TurnosSql)) {
+
+            stmt.setInt(1, idMedico);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                listaTurnos.add(new TurnoResponse(
+                        rs.getInt("id_turno"),
+                        rs.getTime("hora_inicio").toLocalTime(),
+                        rs.getTime("hora_fin").toLocalTime(),
+                        rs.getDate("fecha").toLocalDate(),
+                        RepositoryMedico.ObtenerEspecialidadXid(rs.getInt("fk_especialidad")),
+                        RepositoryMedico.obtenerPacienteDatosSimples(rs.getInt("fk_paciente")),
+                        RepositoryMedico.obtenerConsultorioXid(rs.getInt("fk_consultorio")),
+                        rs.getInt("fk_estado_turno")
+                ));
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return listaTurnos;
+    }
+
     public static List<TurnoResponse> obtenerHistoricos(int fk_paciente) {
         String TurnosSql = "SELECT * FROM Turno WHERE fk_estado_turno = 5 AND fk_paciente = ?";
 
@@ -117,6 +151,40 @@ public class RepositoryTurnos {
                         rs.getDate("fecha").toLocalDate(),
                         RepositoryMedico.ObtenerEspecialidadXid(rs.getInt("fk_especialidad")),
                         RepositoryMedico.obtenerMedicoDatosSimples(rs.getInt("fk_medico")),
+                        RepositoryMedico.obtenerConsultorioXid(rs.getInt("fk_consultorio")),
+                        rs.getInt("fk_estado_turno")
+                ));
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return listaTurnos;
+    }
+
+    public static List<TurnoResponse> obtenerHistoricosMedico(int idMedico) {
+        String TurnosSql = "SELECT * FROM Turno WHERE fk_estado_turno = 5 AND fk_medico = ?";
+
+        System.out.println("Buscando turnos para paciente: ooooooooooooooooooooOOOOOOOOOOOOOOOOOOO" + idMedico);
+
+
+        List<TurnoResponse> listaTurnos = new ArrayList<>();
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(TurnosSql)) {
+
+            stmt.setInt(1, idMedico);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                listaTurnos.add(new TurnoResponse(
+                        rs.getInt("id_turno"),
+                        rs.getTime("hora_inicio").toLocalTime(),
+                        rs.getTime("hora_fin").toLocalTime(),
+                        rs.getDate("fecha").toLocalDate(),
+                        RepositoryMedico.ObtenerEspecialidadXid(rs.getInt("fk_especialidad")),
+                        RepositoryMedico.obtenerPacienteDatosSimples(rs.getInt("fk_paciente")),
                         RepositoryMedico.obtenerConsultorioXid(rs.getInt("fk_consultorio")),
                         rs.getInt("fk_estado_turno")
                 ));

@@ -506,6 +506,29 @@ public class RepositoryMedico {
         return null;
     }
 
+	public static UsuarioResponse obtenerPacienteDatosSimples(int idPaciente) {
+		String sqlMedico = "SELECT * FROM Usuario JOIN Paciente ON Usuario.id_usuario = Paciente.fk_usuario WHERE Paciente.id_paciente = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sqlMedico)){
+
+			stmt.setInt(1, idPaciente);
+			ResultSet rs = stmt.executeQuery();
+
+			if (rs.next()) {
+				return new UsuarioResponse(
+						rs.getString("nombre"),
+						rs.getString("apellido"),
+						rs.getInt("dni"),
+						rs.getString("email")
+				);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return null;
+	}
+
 	public static Consultorio obtenerConsultorioXid(int fk_consultorio) {
 		String sqlConsultorio = "SELECT * FROM Consultorio WHERE id_consultorio = ?";
 

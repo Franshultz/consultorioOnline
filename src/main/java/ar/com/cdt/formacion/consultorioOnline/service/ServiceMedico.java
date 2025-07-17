@@ -86,10 +86,22 @@ public class ServiceMedico {
         return RepositoryTurnos.obtenerMisTurnos(fk_paciente);
     }
 
+    public static List<TurnoResponse> obtenerMisTurnosMedico(int idMedico) {
+        RepositoryTurnos.actualizarEstadoTurnosVencidos();
+
+        return RepositoryTurnos.obtenerMisTurnosMedico(idMedico);
+    }
+
     public static List<TurnoResponse> obtenerHistoricos(int fk_paciente) {
         RepositoryTurnos.actualizarEstadoTurnosVencidos();
 
         return RepositoryTurnos.obtenerHistoricos(fk_paciente);
+    }
+
+    public static List<TurnoResponse> obtenerHistoricosMedico(int idMedico) {
+        RepositoryTurnos.actualizarEstadoTurnosVencidos();
+
+        return RepositoryTurnos.obtenerHistoricosMedico(idMedico);
     }
 
     public boolean reservarTurno(int idTurno, int fkPaciente) {

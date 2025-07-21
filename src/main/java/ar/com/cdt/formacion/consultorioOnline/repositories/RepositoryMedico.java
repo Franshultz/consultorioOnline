@@ -1,5 +1,6 @@
 package ar.com.cdt.formacion.consultorioOnline.repositories;
 
+import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,9 +14,88 @@ import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.MedicoNoEncontradoException;
 import ar.com.cdt.formacion.consultorioOnline.models.*;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
 
 @Repository
 public class RepositoryMedico {
+
+	public static int obtenerFkUsuarioPorIdMedico(int idMedico) {
+		String sql = "SELECT fk_usuario FROM Medico WHERE id_medico = ?";
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement statement = con.prepareStatement(sql)) {
+
+			statement.setInt(1, idMedico);
+			ResultSet rs = statement.executeQuery();
+
+			if (rs.next()) {
+				return rs.getInt("fk_usuario");
+			}
+		} catch (SQLException e) {
+			System.out.println("Error al obtener fk_usuario por idMedico: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return 0; // o -1 para indicar que no se encontró o error
+	}
+
+	public static int obtenerFkUsuarioPorIdPaciente(int idPaciente) {
+		String sql = "SELECT fk_usuario FROM Paciente WHERE id_paciente = ?";
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement statement = con.prepareStatement(sql)) {
+
+			statement.setInt(1, idPaciente);
+			ResultSet rs = statement.executeQuery();
+
+			if (rs.next()) {
+				return rs.getInt("fk_usuario");
+			}
+		} catch (SQLException e) {
+			System.out.println("Error al obtener fk_usuario por idPaciente: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return 0; // o -1 para indicar que no se encontró o error
+	}
+
+
+	public static void cargarFoto (int id_medico, MultipartFile foto) {
+
+		String sqlFoto = "UPDATE Medico SET url_foto = ? WHERE id_medico = ?";
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement psFoto = con.prepareStatement(sqlFoto)) {
+
+			byte[] fotobytes = foto.getBytes();
+
+			psFoto.setBytes(1, fotobytes);
+			psFoto.setInt(2, id_medico);
+			psFoto.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static byte[] obtenerFoto(int id_medico) {
+		String sql = "SELECT url_foto FROM Medico WHERE id_medico = ?";
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement ps = con.prepareStatement(sql)) {
+
+			ps.setInt(1, id_medico);
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				return rs.getBytes("url_foto");
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+
+
 
 	public static boolean verificacionConsultorioDoble(int fk_medico, int fk_especialidad ){
 		String validarEspecialidadSql = "SELECT COUNT(*) FROM Consultorio WHERE fk_medico = ? AND fk_especialidad = ?";
@@ -554,5 +634,56 @@ public class RepositoryMedico {
 		}
 		return null;
 	}
+
+	public static String obtenerRefreshTokenPorId(int idUsuario) {
+		String sql = "SELECT google_refresh_token FROM Usuario WHERE id_usuario = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement statement = con.prepareStatement(sql)) {
+
+			statement.setInt(1, idUsuario);
+			ResultSet rs = statement.executeQuery();
+
+			if (rs.next()) {
+				String token = rs.getString("google_refresh_token");
+				System.out.println("Refresh token para el usuario " + idUsuario + ": " + token);
+				return token;
+			} else {
+				System.out.println("No se encontró refresh token para el usuario: " + idUsuario);
+			}
+
+		} catch (SQLException e) {
+			System.out.println("Error al obtener el refresh token: " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	public static String obtenerAccessTokenPorId(int idUsuario) {
+		String sql = "SELECT google_access_token FROM Usuario WHERE id_usuario = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement statement = con.prepareStatement(sql)) {
+
+			statement.setInt(1, idUsuario);
+			ResultSet rs = statement.executeQuery();
+
+			if (rs.next()) {
+				String token = rs.getString("google_access_token");
+				System.out.println("Access token para el usuario " + idUsuario + ": " + token);
+				return token;
+			} else {
+				System.out.println("No se encontró access token para el usuario: " + idUsuario);
+			}
+
+		} catch (SQLException e) {
+			System.out.println("Error al obtener el access token: " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
 
 }

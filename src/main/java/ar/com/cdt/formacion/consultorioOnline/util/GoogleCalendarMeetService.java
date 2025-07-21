@@ -68,12 +68,12 @@ public class GoogleCalendarMeetService {
     }
 
     // 1) Método para obtener la URL de autorización para enviar al usuario
-    public String obtenerUrlAutorizacion(int fkPaciente) {
+    public String obtenerUrlAutorizacion(int idUsuario) {
         return flow.newAuthorizationUrl()
                 .setRedirectUri(REDIRECT_URI)
                 .setAccessType("offline")
                 .set("prompt", "consent")
-                .setState(String.valueOf(fkPaciente))  // Pasás el id para usarlo luego
+                .setState(String.valueOf(idUsuario))  // Pasás el id para usarlo luego
                 .build();
     }
 
@@ -115,12 +115,33 @@ public class GoogleCalendarMeetService {
         }
     }
 
+    public void crearEventoConMeetCompartido(Credential cred, String resumen, ZonedDateTime inicio, ZonedDateTime fin, String meetUrl) throws Exception {
+        Calendar service = new Calendar.Builder(httpTransport, JSON_FACTORY, cred)
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+
+        Event event = new Event()
+                .setSummary(resumen)
+                .setStart(new EventDateTime().setDateTime(new DateTime(inicio.toInstant().toEpochMilli())))
+                .setEnd(new EventDateTime().setDateTime(new DateTime(fin.toInstant().toEpochMilli())))
+                .setDescription("Acceda a la videollamada: " + meetUrl);
+
+        EventAttachment attachment = new EventAttachment()
+                .setTitle("Meet Link")
+                .setFileUrl(meetUrl)
+                .setMimeType("application/vnd.google-apps.link");
+
+        event.setAttachments(Collections.singletonList(attachment));
+
+        service.events().insert("primary", event).execute();
+    }
+
 
     // --- Ejemplo de controlador REST para manejar el flujo OAuth ---
 
     @GetMapping("/authurl")
-    public void redirectToGoogleAuth(@RequestParam("fkPaciente") int fkPaciente, HttpServletResponse response) throws Exception {
-        String url = obtenerUrlAutorizacion(fkPaciente);
+    public void redirectToGoogleAuth(@RequestParam("idUsuario") int idUsuario, HttpServletResponse response) throws Exception {
+        String url = obtenerUrlAutorizacion(idUsuario);
         response.sendRedirect(url);
     }
 
@@ -128,21 +149,18 @@ public class GoogleCalendarMeetService {
     @GetMapping("/oauth2callback")
     public void oauth2callback(@RequestParam("code") String code, @RequestParam("state") String state, HttpServletResponse response) throws IOException {
         try {
-            int fkPaciente = Integer.parseInt(state);
+            int idUsuario = Integer.parseInt(state);
 
             Credential cred = intercambiarCodigoPorCredenciales(code);
 
             String refreshToken = cred.getRefreshToken();
             String accessToken = cred.getAccessToken();
 
-            repositoryPaciente.guardarRefreshToken(fkPaciente, refreshToken);
-            repositoryPaciente.guardarAccessToken(fkPaciente, accessToken);
-
-            // Producción (React desplegado con contexto base)
-            // response.sendRedirect("/consultorioOnlineFront/turnos");
+            repositoryPaciente.guardarRefreshToken(idUsuario, refreshToken);
+            repositoryPaciente.guardarAccessToken(idUsuario, accessToken);
 
             // Desarrollo local (React corriendo en puerto 5173 sin contexto)
-            response.sendRedirect("http://localhost:5173/consultorioOnlineFront/home-paciente");
+            response.sendRedirect("http://localhost:5173/consultorioOnlineFront/oauth2callback");
 
         } catch (Exception e) {
             e.printStackTrace();

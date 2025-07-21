@@ -11,6 +11,7 @@ import ar.com.cdt.formacion.consultorioOnline.util.GoogleCalendarMeetService;
 import com.google.api.client.auth.oauth2.Credential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.*;
 import java.util.ArrayList;
@@ -25,6 +26,9 @@ public class ServiceMedico {
     @Autowired
     private RepositoryPaciente repositoryPaciente;
 
+    public void cargarFoto(int id_medico, MultipartFile foto) {
+        RepositoryMedico.cargarFoto(id_medico, foto);
+    }
 
     public Consultorio registrarConsultorio(Consultorio consultorio) {
         Consultorio consultorioCreado = RepositoryMedico.guardarConsultorio(consultorio);
@@ -80,6 +84,13 @@ public class ServiceMedico {
 
         return RepositoryTurnos.obtenerTurnosPorConsultorioYFecha(idConsultorio, fecha);
     }
+
+    public List<TurnoResponse> obtenerTurnosMedicoPorConsultorioYFecha(int idConsultorio, LocalDate fecha) {
+        RepositoryTurnos.actualizarEstadoTurnosVencidos();
+
+        return RepositoryTurnos.obtenerTurnosMedicoPorConsultorioYFecha(idConsultorio, fecha);
+    }
+
     public static List<TurnoResponse> obtenerMisTurnos(int fk_paciente) {
         RepositoryTurnos.actualizarEstadoTurnosVencidos();
 
@@ -105,36 +116,51 @@ public class ServiceMedico {
     }
 
     public boolean reservarTurno(int idTurno, int fkPaciente) {
-        // 1. Reservar el turno en la base de datos
         boolean reservado = RepositoryTurnos.reservarTurno(idTurno, fkPaciente);
         if (!reservado) return false;
 
         try {
-            // 2. Obtener horario real del turno (inicio y fin)
             ZonedDateTime[] horarios = RepositoryTurnos.obtenerHorario(idTurno);
             ZonedDateTime inicio = horarios[0];
             ZonedDateTime fin = horarios[1];
 
-            // 3. Obtener refresh token para Google Calendar del paciente
-            String refreshToken = repositoryPaciente.obtenerRefreshToken(fkPaciente);
-            if (refreshToken == null) {
-                System.out.println("Paciente no autorizado con Google Calendar");
+            int idMedico = RepositoryTurnos.obtenerIdMedicoPorTurno(idTurno);
+
+            int idUsuarioMedico = RepositoryMedico.obtenerFkUsuarioPorIdMedico(idMedico);
+            int idUsuarioPaciente = RepositoryMedico.obtenerFkUsuarioPorIdPaciente(fkPaciente);
+
+            String refreshTokenMedico = RepositoryMedico.obtenerRefreshTokenPorId(idUsuarioMedico);
+            String refreshTokenPaciente = RepositoryMedico.obtenerRefreshTokenPorId(idUsuarioPaciente);
+
+            if (refreshTokenMedico == null || refreshTokenPaciente == null) {
+                System.out.println("Alguno de los usuarios no autorizó Google Calendar");
                 return false;
             }
 
-            // 4. Crear credenciales OAuth con el refresh token
-            Credential cred = calendarService.crearCredentialConRefreshToken(refreshToken);
+            Credential credMedico = calendarService.crearCredentialConRefreshToken(refreshTokenMedico);
+            Credential credPaciente = calendarService.crearCredentialConRefreshToken(refreshTokenPaciente);
 
-            // 5. Crear evento en Google Calendar con enlace Meet
-            String enlaceMeet = calendarService.crearEventoConMeet(cred, "Turno médico", inicio, fin);
+            String enlaceMeet = calendarService.crearEventoConMeet(credMedico, "Turno médico", inicio, fin);
 
-            // 6. Guardar enlace Meet en la base de datos
+            calendarService.crearEventoConMeetCompartido(credPaciente, "Turno médico", inicio, fin, enlaceMeet);
+
             return RepositoryTurnos.actualizarEnlaceMeet(idTurno, enlaceMeet);
 
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+
+    public static boolean deshabilitarTurno(int idTurno){
+        boolean done = RepositoryTurnos.deshabilitarTurno(idTurno);
+        return done;
+    }
+
+    public static boolean habilitarTurno(int idTurno){
+        boolean done = RepositoryTurnos.habilitarTurno(idTurno);
+        return done;
     }
 
     public static  boolean cancelarTurno(int idTurno) {

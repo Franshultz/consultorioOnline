@@ -29,6 +29,18 @@ public class ControllerTurnos {
         }
     }
 
+    @GetMapping("/medico/{idConsultorio}")
+    public ResponseEntity<?> obtenerTurnosMedicoPorConsultorioYfecha(@PathVariable int idConsultorio, @RequestParam LocalDate fecha) {
+        try {
+            List<TurnoResponse> turnos = serviceMedico.obtenerTurnosMedicoPorConsultorioYFecha(idConsultorio, fecha);
+            return ResponseEntity.ok(turnos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener los turnos: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/misturnos")
     public ResponseEntity<?> obtenerMisTurnos(@RequestParam int idPaciente) {
         try {
@@ -91,6 +103,7 @@ public class ControllerTurnos {
             boolean exito = serviceMedico.reservarTurno(idTurno, fk_paciente);
 
             if (exito) {
+
                 return ResponseEntity.ok("Turno reservado y evento generado correctamente.");
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -100,6 +113,44 @@ public class ControllerTurnos {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al reservar turno: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/deshabilitar/{idTurno}")
+    public ResponseEntity<?> deshabilitarTurno(@PathVariable int idTurno) {
+
+        try {
+            boolean exito = serviceMedico.deshabilitarTurno(idTurno);
+
+            if (exito) {
+                return ResponseEntity.ok("Turno deshabilitado correctamente.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No se pudo deshabilitar el turno.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al deshabilitar turno: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/habilitar/{idTurno}")
+    public ResponseEntity<?> habilitarTurno(@PathVariable int idTurno) {
+
+        try {
+            boolean exito = serviceMedico.habilitarTurno(idTurno);
+
+            if (exito) {
+                return ResponseEntity.ok("Turno habilitado correctamente.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No se pudo habilitar el turno.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al habilitar turno: " + e.getMessage());
         }
     }
 

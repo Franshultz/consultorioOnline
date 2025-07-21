@@ -9,7 +9,9 @@ import ar.com.cdt.formacion.consultorioOnline.models.*;
 import ar.com.cdt.formacion.consultorioOnline.service.ServiceUsuario;
 import ar.com.cdt.formacion.consultorioOnline.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,18 @@ public class ControllerUsuario {
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido o ausente");
+    }
+
+    @GetMapping("/foto/{idMedico}")
+    public ResponseEntity<byte[]> obtenerFoto(@PathVariable int idMedico) {
+        byte[] foto = ServiceUsuario.obtenerFoto(idMedico);
+        if (foto != null) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.IMAGE_JPEG); // o IMAGE_PNG según el tipo
+            return new ResponseEntity<>(foto, headers, HttpStatus.OK);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 

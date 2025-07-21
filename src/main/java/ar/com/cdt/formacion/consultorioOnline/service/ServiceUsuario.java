@@ -137,5 +137,9 @@ public class ServiceUsuario {
         return RepositoryUsuario.obtenerNombreCompleto(idUsuario);
 
     }
+
+    public static byte[] obtenerFoto(int id_medico) {
+        return RepositoryMedico.obtenerFoto(id_medico);
+    }
 }
 

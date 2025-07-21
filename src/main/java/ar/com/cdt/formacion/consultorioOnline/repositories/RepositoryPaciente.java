@@ -146,37 +146,37 @@ public class RepositoryPaciente {
     }
 
 
-    public void guardarRefreshToken(int fkPaciente, String refreshToken) {
-        String sql = "UPDATE Paciente SET google_refresh_token = ? WHERE id_paciente = ?";
+    public void guardarRefreshToken(int idUsuario, String refreshToken) {
+        String sql = "UPDATE Usuario SET google_refresh_token = ? WHERE id_usuario = ?";
         try (Connection con = Conexion.getInstancia().getConexion();
              PreparedStatement stmt = con.prepareStatement(sql)) {
             stmt.setString(1, refreshToken);
-            stmt.setInt(2, fkPaciente);
+            stmt.setInt(2, idUsuario);
             stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void guardarAccessToken(int fkPaciente, String accessToken) {
-        String sql = "UPDATE Paciente SET google_access_token = ? WHERE id_paciente = ?";
+    public void guardarAccessToken(int idUsuario, String accessToken) {
+        String sql = "UPDATE Usuario SET google_access_token = ? WHERE id_usuario = ?";
         try (Connection con = Conexion.getInstancia().getConexion();
              PreparedStatement stmt = con.prepareStatement(sql)) {
             stmt.setString(1, accessToken);
-            stmt.setInt(2, fkPaciente);
+            stmt.setInt(2, idUsuario);
             stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static String obtenerRefreshToken(int fkPaciente) {
-        String sql = "SELECT google_refresh_token FROM Paciente WHERE id_paciente = ?";
+    public static String obtenerRefreshToken(int idUsuario) {
+        String sql = "SELECT google_refresh_token FROM Usuario WHERE id_usuario = ?";
 
         try (Connection con = Conexion.getInstancia().getConexion();
              PreparedStatement stmt = con.prepareStatement(sql)) {
 
-            stmt.setInt(1, fkPaciente);
+            stmt.setInt(1, idUsuario);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {

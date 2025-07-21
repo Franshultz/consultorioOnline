@@ -60,6 +60,44 @@ public class RepositoryTurnos {
         return listaTurnos;
     }
 
+    public static List<TurnoResponse> obtenerTurnosMedicoPorConsultorioYFecha(int idConsultorio, LocalDate fecha) {
+        String TurnosSql = """
+            SELECT * FROM Turno
+                WHERE fk_consultorio = ?
+                AND fk_estado_turno IN (1, 4)
+                AND fecha = ?
+            """;
+
+        List<TurnoResponse> listaTurnos = new ArrayList<>();
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(TurnosSql)) {
+
+            stmt.setInt(1, idConsultorio);
+            stmt.setDate(2, Date.valueOf(fecha));
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                listaTurnos.add(new TurnoResponse(
+                        rs.getInt("id_turno"),
+                        rs.getTime("hora_inicio").toLocalTime(),
+                        rs.getTime("hora_fin").toLocalTime(),
+                        rs.getDate("fecha").toLocalDate(),
+                        RepositoryMedico.ObtenerEspecialidadXid(rs.getInt("fk_especialidad")),
+                        RepositoryMedico.obtenerMedicoDatosSimples(rs.getInt("fk_medico")),
+                        RepositoryMedico.obtenerConsultorioXid(idConsultorio),
+                        rs.getInt("fk_estado_turno")
+                ));
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return listaTurnos;
+    }
+
 
     public static List<TurnoResponse> obtenerMisTurnos(int fk_paciente) {
         String TurnosSql = "SELECT * FROM Turno WHERE fk_estado_turno = 2 AND fk_paciente = ?";
@@ -240,6 +278,44 @@ public class RepositoryTurnos {
         }
     }
 
+    public static boolean deshabilitarTurno(int idTurno) {
+        String sql = "UPDATE Turno SET fk_estado_turno = ? WHERE id_turno = ?";
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+
+            int nuevoEstadoDisponible = 4;
+            stmt.setInt(1, nuevoEstadoDisponible);
+            stmt.setInt(2, idTurno);
+
+            int filasAfectadas = stmt.executeUpdate();
+            return filasAfectadas > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean habilitarTurno(int idTurno) {
+        String sql = "UPDATE Turno SET fk_estado_turno = ? WHERE id_turno = ?";
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+
+            int nuevoEstadoDisponible = 1;
+            stmt.setInt(1, nuevoEstadoDisponible);
+            stmt.setInt(2, idTurno);
+
+            int filasAfectadas = stmt.executeUpdate();
+            return filasAfectadas > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static boolean actualizarEnlaceMeet(int idTurno, String enlaceMeet) {
         String sql = "UPDATE Turno SET enlace = ? WHERE id_turno = ?";
         try (Connection con = Conexion.getInstancia().getConexion();
@@ -305,6 +381,31 @@ public class RepositoryTurnos {
         }
 
         return horarios;
+    }
+
+    public static int obtenerIdMedicoPorTurno(int idTurno) {
+        String sql = "SELECT fk_medico FROM Turno WHERE id_turno = ?";
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement statement = con.prepareStatement(sql)) {
+
+            statement.setInt(1, idTurno);
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                int idMedico = rs.getInt("fk_medico");
+                System.out.println("Médico del turno: " + idMedico);
+                return idMedico;
+            } else {
+                System.out.println("No se encontró médico para el turno con ID: " + idTurno);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al obtener el médico del turno: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return 0; // o podés lanzar una excepción si querés manejar el error de forma estricta
     }
 
 

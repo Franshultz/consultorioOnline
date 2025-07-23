@@ -35,6 +35,10 @@ public class TurnoResponse {
         this.fk_estado_turno = fk_estado_turno;
     }
 
+    public TurnoResponse() {
+
+    }
+
     public int getId_turno() {
         return id_turno;
     }
@@ -89,5 +93,13 @@ public class TurnoResponse {
 
     public void setHoraFin(LocalTime horaFin) {
         this.horaFin = horaFin;
+    }
+
+    public Consultorio getConsultorio() {
+        return consultorio;
+    }
+
+    public void setConsultorio(Consultorio consultorio) {
+        this.consultorio = consultorio;
     }
 }

@@ -18,6 +18,7 @@ public class GestionadorEmails {
     }
 
 
+    @Async
     public void enviarMail (String to, String asunto,String texto) { // recibe el mail, el asunto y el cuerpo del mail
         System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + to + asunto + texto);
         // configurar javaMailSender  con STARTTLS  - COMANDO PARA SOLICITAR CONEXION SEGURA

@@ -6,8 +6,12 @@ import ar.com.cdt.formacion.consultorioOnline.models.*;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryMedico;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryPaciente;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryUsuario;
+import ar.com.cdt.formacion.consultorioOnline.util.EncriptarClave;
+import ar.com.cdt.formacion.consultorioOnline.util.GestionadorEmails;
 import ar.com.cdt.formacion.consultorioOnline.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 
@@ -15,6 +19,9 @@ import java.util.List;
 
 @Service
 public class ServiceUsuario {
+
+    @Autowired
+    private GestionadorEmails gestionadorEmails;
 
     public String iniciarSesion(LoginRequest loginRequest) {
         try {
@@ -68,6 +75,13 @@ public class ServiceUsuario {
         }
     }
 
+
+    public static boolean resetearClave(int idUsuario, String nuevaClave) {
+        // Ideal: hashear la nueva clave
+        String claveHasheada = EncriptarClave.encriptar(nuevaClave);
+
+        return RepositoryUsuario.actualizarClave(idUsuario, claveHasheada);
+    }
 
 
     public int registrarUsuarioMedico(Medico medico) {
@@ -140,6 +154,33 @@ public class ServiceUsuario {
 
     public static byte[] obtenerFoto(int id_medico) {
         return RepositoryMedico.obtenerFoto(id_medico);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+    }
+
+
+    public boolean enviarCorreoRecuperacion(String correo) {
+
+        System.out.println("Buscando correo: '" + correo + "'");
+        int idUsuario = RepositoryUsuario.existeCorreo(correo);
+        if(!(idUsuario == 0)) {
+            long timestamp = System.currentTimeMillis();
+
+            String url = "http://localhost:5173/consultorioOnlineFront/reseteo-clave?fk_usuario=" + idUsuario + "&timestamp=" + timestamp;
+
+            String mailUsuario = "Hemos recibido una solicitud de cambio de contraseña. Para actualizar su clave, haga click en el link a continuación: \n"
+                    + url + "\n" +
+                    "Este link tiene una validez de 2 minutos desde el momento de recepción de este correo. De cumplirse el plazo, solicitar uno nuevo";
+
+
+            gestionadorEmails.enviarMail(correo, "Cambio de contraseña", mailUsuario);
+            return true;
+        }
+
+        return false;
     }
 }
 

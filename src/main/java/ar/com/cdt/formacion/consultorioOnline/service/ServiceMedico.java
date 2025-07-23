@@ -2,11 +2,13 @@ package ar.com.cdt.formacion.consultorioOnline.service;
 
 import ar.com.cdt.formacion.consultorioOnline.dto.MedicoConsultorioResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.TurnoResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioResponse;
 import ar.com.cdt.formacion.consultorioOnline.models.Consultorio;
 import ar.com.cdt.formacion.consultorioOnline.models.Especialidad;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryMedico;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryPaciente;
 import ar.com.cdt.formacion.consultorioOnline.repositories.RepositoryTurnos;
+import ar.com.cdt.formacion.consultorioOnline.util.GestionadorEmails;
 import ar.com.cdt.formacion.consultorioOnline.util.GoogleCalendarMeetService;
 import com.google.api.client.auth.oauth2.Credential;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ public class ServiceMedico {
 
     @Autowired
     private GoogleCalendarMeetService calendarService;
+
+    @Autowired
+    private GestionadorEmails gestionadorEmails;
 
     @Autowired
     private RepositoryPaciente repositoryPaciente;
@@ -116,8 +121,7 @@ public class ServiceMedico {
     }
 
     public boolean reservarTurno(int idTurno, int fkPaciente) {
-        boolean reservado = RepositoryTurnos.reservarTurno(idTurno, fkPaciente);
-        if (!reservado) return false;
+        TurnoResponse turnoReservado = RepositoryTurnos.reservarTurno(idTurno, fkPaciente);
 
         try {
             ZonedDateTime[] horarios = RepositoryTurnos.obtenerHorario(idTurno);
@@ -143,6 +147,55 @@ public class ServiceMedico {
             String enlaceMeet = calendarService.crearEventoConMeet(credMedico, "Turno médico", inicio, fin);
 
             calendarService.crearEventoConMeetCompartido(credPaciente, "Turno médico", inicio, fin, enlaceMeet);
+
+            UsuarioResponse medicoDatos = RepositoryMedico.obtenerMedicoDatosSimples(idMedico);
+            UsuarioResponse pacienteDatos = RepositoryMedico.obtenerPacienteDatosSimples(fkPaciente);
+
+            String mensajeReservaPaciente = "Hola " + pacienteDatos.getNombre() + " " + pacienteDatos.getApellido() + ",\n" +
+                    "\n" +
+                    "Tu turno ha sido reservado con éxito. A continuación, te compartimos los detalles del mismo:\n" +
+                    "\n" +
+                    "Médico: Dr./Dra. " + medicoDatos.getApellido() + " " + medicoDatos.getNombre() + "\n" +
+                    "\n" +
+                    "Especialidad :" + turnoReservado.getEspecialidad().getEspecialidad() + "\n" +
+                    "\n" +
+                    "Fecha: " + turnoReservado.getFecha() +"\n" +
+                    "\n" +
+                    "Hora :" + turnoReservado.getHoraInicio() + "\n" +
+                    "\n" +
+                    "Consultorio: " + turnoReservado.getConsultorio().getNombreConsultorio() + "\n" +
+                    "\n" +
+                    "Modalidad: Videollamada \n" +
+                    "\n" +
+                    "Enlace para la videollamada: " + enlaceMeet + "\n" +
+                    "\n" +
+                    "Por favor, recordá estar presente 5 minutos antes del horario pactado.\n" +
+                    "Si necesitás cancelar o reprogramar tu turno, hacelo con al menos 24 horas de anticipación.\n" +
+                    "\n" +
+                    "Gracias por confiar en nosotros.\n" +
+                    "Consultorio onLine";
+
+
+            String mensajeReservaMedico = "Hola Dr./Dra. " + medicoDatos.getApellido() + " " + medicoDatos.getNombre() + ",\n" +
+                    "\n" +
+                    "Le informamos que el paciente " + pacienteDatos.getNombre() + " " + pacienteDatos.getApellido() + " ha reservado un turno.\n" +
+                    "\n" +
+                    "Detalles del turno:\n" +
+                    "Especialidad: " + turnoReservado.getEspecialidad().getEspecialidad() + "\n" +
+                    "Fecha: " + turnoReservado.getFecha() + "\n" +
+                    "Hora: " + turnoReservado.getHoraInicio() + "\n" +
+                    "Consultorio: " + turnoReservado.getConsultorio().getNombreConsultorio() + "\n" +
+                    "\n" +
+                    "Modalidad: Videollamada\n" +
+                    "Enlace para la videollamada: " + enlaceMeet + "\n" +
+                    "\n" +
+                    "Por favor, esté preparado para recibir al paciente en el horario correspondiente.\n" +
+                    "\n" +
+                    "Gracias por su compromiso.\n" +
+                    "Consultorio onLine";
+
+            gestionadorEmails.enviarMail(medicoDatos.getEmail(), "Turno reservado", mensajeReservaMedico);
+            gestionadorEmails.enviarMail(pacienteDatos.getEmail(), "Turno Reservado", mensajeReservaPaciente);
 
             return RepositoryTurnos.actualizarEnlaceMeet(idTurno, enlaceMeet);
 

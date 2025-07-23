@@ -1,6 +1,9 @@
 package ar.com.cdt.formacion.consultorioOnline.repositories;
 
 import ar.com.cdt.formacion.consultorioOnline.dto.TurnoResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioResponse;
+import ar.com.cdt.formacion.consultorioOnline.models.Consultorio;
+import ar.com.cdt.formacion.consultorioOnline.models.Especialidad;
 import ar.com.cdt.formacion.consultorioOnline.util.GoogleCalendarMeetService;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.services.calendar.model.Event;
@@ -237,9 +240,10 @@ public class RepositoryTurnos {
 
 
 
-    public static boolean reservarTurno(int idTurno, int fkPaciente) {
+    public static TurnoResponse reservarTurno(int idTurno, int fkPaciente) {
         String sql = "UPDATE Turno SET fk_estado_turno = ?, fk_paciente = ? WHERE id_turno = ?";
 
+        System.out.println("Reservando turno con idTurno=" + idTurno + " y fkPaciente=" + fkPaciente);
         try (Connection con = Conexion.getInstancia().getConexion();
              PreparedStatement stmt = con.prepareStatement(sql)) {
 
@@ -249,13 +253,86 @@ public class RepositoryTurnos {
             stmt.setInt(3, idTurno);
 
             int filasAfectadas = stmt.executeUpdate();
-            return filasAfectadas > 0;
+            TurnoResponse turnoReservado = obtenerTurnoReservado(idTurno);
+            return turnoReservado;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+        }
+        return null;
+    }
+
+    public static TurnoResponse obtenerTurnoReservado(int idTurno) {
+        String sql = """
+        SELECT 
+            t.id_turno,
+            t.fk_estado_turno,
+            t.fecha,
+            t.hora_inicio,
+            t.hora_fin,
+            e.id_especialidad,
+            e.especialidad,
+            c.id_consultorio,
+            c.nombre_consultorio,
+            c.horario_laboral_inicio,
+            c.horario_laboral_fin,
+            u.id_usuario,
+            u.nombre,
+            u.apellido,
+            u.email
+        FROM Turno t
+        JOIN Consultorio c ON t.fk_consultorio = c.id_consultorio
+        JOIN Especialidad e ON c.fk_especialidad = e.id_especialidad
+        JOIN Usuario u ON c.fk_medico = u.id_usuario
+        WHERE t.id_turno = ?
+    """;
+
+        try (Connection con = Conexion.getInstancia().getConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+
+            stmt.setInt(1, idTurno);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    TurnoResponse turno = new TurnoResponse();
+
+                    turno.setId_turno(rs.getInt("id_turno"));
+                    turno.setFk_estado_turno(rs.getInt("fk_estado_turno"));
+                    turno.setFecha(rs.getDate("fecha").toLocalDate());
+                    turno.setHoraInicio(rs.getTime("hora_inicio").toLocalTime());
+                    turno.setHoraFin(rs.getTime("hora_fin").toLocalTime());
+
+                    Especialidad esp = new Especialidad();
+                    esp.setIdEspecialidad(rs.getInt("id_especialidad"));
+                    esp.setEspecialidad(rs.getString("especialidad"));
+                    turno.setEspecialidad(esp);
+
+                    Consultorio cons = new Consultorio();
+                    cons.setIdConsultorio(rs.getInt("id_consultorio"));
+                    cons.setNombreConsultorio(rs.getString("nombre_consultorio"));
+                    cons.setHorarioLaboralInicio(rs.getTime("horario_laboral_inicio").toLocalTime());
+                    cons.setHorarioLaboralFin(rs.getTime("horario_laboral_fin").toLocalTime());
+                    turno.setConsultorio(cons);
+
+                    UsuarioResponse medico = new UsuarioResponse();
+                    medico.setId_usuario(rs.getInt("id_usuario"));
+                    medico.setNombre(rs.getString("nombre"));
+                    medico.setApellido(rs.getString("apellido"));
+                    medico.setEmail(rs.getString("email"));
+                    turno.setMedico(medico);
+
+                    return turno;
+                } else {
+                    return null;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
+
 
     public static boolean cancelarTurno(int idTurno) {
         String sql = "UPDATE Turno SET fk_estado_turno = ?, fk_paciente = ?, enlace = ? WHERE id_turno = ?";

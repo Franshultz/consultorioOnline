@@ -50,5 +50,33 @@ public class LoginController {
                     .body(Map.of("error", "Error inesperado al iniciar sesión"));
         }
     }
+
+    @PostMapping("/restablecer")
+    public ResponseEntity<?> enviarCorreoRecuperacion(@RequestBody Map<String, String> payload) {
+        String correo = payload.get("correo");
+
+        if (correo == null || correo.isEmpty()) {
+            return ResponseEntity.badRequest().body("El correo es obligatorio.");
+        }
+
+        boolean enviado = serviceUsuario.enviarCorreoRecuperacion(correo);
+
+        if (enviado) {
+            return ResponseEntity.ok("Correo enviado");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se encontró un usuario con ese correo.");
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetearClave(@RequestBody ResetPasswordRequest dto) {
+        boolean exito = ServiceUsuario.resetearClave(dto.getIdUsuario(), dto.getNuevaClave());
+
+        if (exito) {
+            return ResponseEntity.ok("Contraseña actualizada correctamente.");
+        } else {
+            return ResponseEntity.badRequest().body("No se pudo actualizar la contraseña.");
+        }
+    }
 }
 

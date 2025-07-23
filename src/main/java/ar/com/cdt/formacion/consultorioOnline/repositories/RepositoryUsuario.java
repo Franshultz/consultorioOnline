@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ar.com.cdt.formacion.consultorioOnline.dto.NombreCompletoResponse;
+import ar.com.cdt.formacion.consultorioOnline.dto.RefreshTokenResponse;
 import ar.com.cdt.formacion.consultorioOnline.dto.UsuarioAutocompletadoResponse;
 import ar.com.cdt.formacion.consultorioOnline.exceptions.DatabaseException;
 import ar.com.cdt.formacion.consultorioOnline.models.*;
@@ -14,6 +15,42 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class  RepositoryUsuario {
+
+	public static int existeCorreo(String correo) {
+		String sql = "SELECT id_usuario FROM Usuario WHERE email = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sql)) {
+
+			stmt.setString(1, correo);
+			ResultSet resultSet = stmt.executeQuery();
+
+			if(resultSet.next()) {
+				return resultSet.getInt("id_usuario");
+			}
+		} catch (SQLException e) {
+			System.out.println("Error al agregar: " + e.getMessage());
+			e.printStackTrace();
+		}
+        return 0;
+    }
+
+	public static boolean actualizarClave(int idUsuario, String nuevaClaveHasheada) {
+		String sql = "UPDATE Usuario SET clave = ? WHERE id_usuario = ?";
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sql)) {
+
+			stmt.setString(1, nuevaClaveHasheada);
+			stmt.setInt(2, idUsuario);
+
+			return stmt.executeUpdate() > 0;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 
 	public static int guardarUsuarioMedico(Medico medico) {
 		String sql = "INSERT INTO Usuario(nombre, apellido, email, clave, dni, fecha_nacimiento, fk_genero, fk_estado_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -112,6 +149,28 @@ public class  RepositoryUsuario {
 		}
 
 		return listaGeneros;
+	}
+
+	public static String obtenerRefreshToken(int idUsuario) {
+		String sql = "SELECT google_refresh_token FROM Usuario WHERE id_usuario = ?";
+		String refresh_token = null;
+
+		try (Connection con = Conexion.getInstancia().getConexion();
+			 PreparedStatement stmt = con.prepareStatement(sql)) {
+
+			stmt.setInt(1, idUsuario);
+
+			ResultSet resultSet = stmt.executeQuery();
+
+			if(resultSet.next()) {
+				refresh_token = resultSet.getString("google_refresh_token");
+			}
+		} catch (SQLException e) {
+			System.out.println("Errorrrr: " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		return refresh_token;  // Retornar el token obtenido o null si no existe
 	}
 
 	public static boolean existeUsuarioXdni(int dni, String clave) {
